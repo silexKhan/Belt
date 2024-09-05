@@ -1,80 +1,77 @@
 # Belt 📦
 
-**Belt**는 iOS 개발에서 자주 사용되는 다양한 기능들을 공구 벨트처럼 간편하게 꺼내어 사용할 수 있도록 만든 유틸리티 라이브러리입니다. 
-사진첩 접근, 파일 관리, 위치 정보, 권한 처리 등 개발에서 반복적으로 사용되는 기능들을 쉽게 사용할 수 있도록 추상화된 여러 유틸리티와 킷(Kit)들을 제공합니다.
+![Belt Utility Icon](belt.png)
 
-## 주요 기능
+**Belt** is a utility library designed to make repetitive tasks in iOS development as easy as grabbing a tool from a utility belt. It provides abstractions for common tasks like photo album access, file management, location services, permissions handling, and more, all in a simple and reusable format.
 
-Belt 라이브러리에는 다음과 같은 유용한 유틸리티와 킷이 포함되어 있습니다.
+## Main Features
 
-## 개발 방법
-
-1. **무상태(stateless) 설계**  
-   유틸리티 클래스가 상태를 가지지 않도록 **무상태(stateless)**로 설계합니다. 이는 메서드가 외부 상태를 변경하지 않고, 주어진 입력에 대해 항상 동일한 출력을 반환하도록 설계하는 것을 의미합니다. 
-   이러한 함수형 스타일의 설계는 유틸리티 클래스를 더 예측 가능하고, 테스트하기 쉽게 만듭니다. 이로 인해 코드의 안정성과 유지보수성이 높아집니다.
-
-2. **테스트 가능성**  
-   유틸리티 클래스는 **외부 의존성을 최소화**하여 유닛 테스트가 용이하도록 설계되어야 합니다. 특히, 의존성이 필요한 경우 **의존성 주입(Dependency Injection)** 패턴을 활용하여 클래스 간의 결합도를 낮출 수 있습니다. 
-   이는 테스트 환경에서 필요한 의존성을 쉽게 대체할 수 있어 테스트 범위가 확장되고 코드의 유연성이 증가합니다.
+Belt includes several handy utilities and kits:
 
 ### 1. **AssetUtility**
-- 사진 및 비디오 등의 미디어 파일을 관리하는 도구입니다.
-- 사진첩에서 사진 및 비디오를 불러오거나 앨범을 생성 및 삭제할 수 있습니다.
+- Manage media files like photos and videos.
+- Fetch, create, and delete albums in the photo library.
 
 ### 2. **FileUtility**
-- 파일 및 디렉토리 관리를 도와주는 도구입니다.
-- 파일 읽기, 쓰기, 삭제, 디렉토리 생성 등의 작업을 쉽게 처리할 수 있습니다.
+- Manage files and directories effortlessly.
+- Easily read, write, delete files, and create directories.
 
 ### 3. **LocationUtility**
-- GPS 및 위치 정보를 처리하는 도구입니다.
-- 현재 위치 가져오기, 실시간 위치 추적 및 위치 권한 처리를 간편하게 할 수 있습니다.
+- Handle GPS and location-based services.
+- Retrieve the current location, track real-time positions, and handle location permissions.
 
 ### 4. **PermissionUtility**
-- 카메라, 위치, 알림 등 앱에서 필요한 권한을 관리하는 도구입니다.
-- 권한 요청, 상태 확인, 권한 허용 여부 등을 쉽게 처리할 수 있습니다.
+- Manage app permissions for camera, location, notifications, etc.
+- Request, check status, and determine if permissions are granted.
 
 ### 5. **NotificationUtility**
-- 로컬 알림과 푸시 알림을 관리하는 도구입니다.
-- 알림을 설정하고, 로컬 및 푸시 알림을 생성하거나 처리할 수 있습니다.
+- Manage local and push notifications.
+- Set up notifications and handle both local and push notifications seamlessly.
 
 ### 6. **UserDefaultsUtility**
-- `UserDefaults`를 사용한 간단한 데이터 저장 및 불러오기를 도와주는 도구입니다.
-- 사용자 설정 값을 쉽게 관리할 수 있습니다.
+- Easily store and retrieve data using `UserDefaults`.
+- Manage user settings efficiently.
 
 ### 7. **KeychainUtility**
-- 보안 데이터(비밀번호, 토큰 등)를 Keychain에 저장하고 불러오는 작업을 간편하게 처리할 수 있습니다.
+- Store and retrieve secure data like passwords or tokens using the Keychain.
 
 ### 8. **BluetoothUtility**
-- Bluetooth 기기 탐색, 연결 및 데이터 송수신을 관리하는 도구입니다.
+- Discover, connect, and manage Bluetooth devices.
 
 ### 9. **CoreDataUtility**
-- Core Data를 쉽게 다루기 위한 도구입니다.
-- 데이터 모델 생성, 저장, 검색, 삭제 기능을 제공합니다.
+- Simplifies working with Core Data, including creating, saving, fetching, and deleting data.
 
 ### 10. **AudioUtility**
-- 오디오 파일 재생 및 녹음을 쉽게 처리할 수 있는 도구입니다.
+- Handle audio playback and recording with ease.
 
 ### 11. **AnimationUtility**
-- 자주 사용되는 애니메이션을 간편하게 적용할 수 있는 도구입니다.
+- Quickly apply common animations to your UI elements.
 
 ### 12. **NetworkUtility**
-- 
+- Simplifies making HTTP requests and handling responses for both GET and POST operations.
 
 ### 13. **ReachabilityUtility**
-- 
+- Monitor network connection status and automatically handle network availability changes.
 
 ### 14. **DeviceInfoUtility**
-- 디바이스의 운영체제 버전, 기종, 해상도 등 기본적인 정보를 쉽게 얻을 수 있습니다.
-
+- Retrieve basic device information such as OS version, model, and screen resolution.
 
 ### 15. **ClipboardUtility**
-- 클립보드에 데이터를 복사하거나 붙여넣는 작업을 간편하게 처리할 수 있습니다.
+- Manage data on the clipboard, including copying and pasting text or images.
 
-## 설치 방법
+## Development Guidelines
+
+### 1. **Stateless Design**
+   Utility classes should be stateless, meaning they don't retain any state and are purely functional. This ensures predictable outcomes and simplifies testing.
+
+### 2. **Testability**
+   Ensure utility classes are easy to test by minimizing external dependencies. If dependencies are required, use **dependency injection** to reduce tight coupling and improve testability.
+
+## Installation
 
 ### Swift Package Manager
 
-Belt 라이브러리는 Swift Package Manager(SPM)를 통해 쉽게 설치할 수 있습니다. `Package.swift` 파일에 다음과 같이 추가하세요:
+You can easily add **Belt** to your project using the Swift Package Manager:
 
 ```swift
 dependencies: [
@@ -82,25 +79,29 @@ dependencies: [
 ]
 ```
 
-## 사용 예시
+## Usage Examples
 
-Belt 라이브러리는 간단하고 직관적으로 사용할 수 있습니다. 각 유틸리티와 킷의 사용법을 빠르게 적용할 수 있도록 설계되었습니다. 아래는 몇 가지 대표적인 사용 시나리오입니다:
+Belt is designed to be simple and intuitive. Each utility and kit can be quickly integrated into your project. Below are a few common usage scenarios:
 
-- **AssetUtility**: 사진첩 접근 및 관리, 사진 및 비디오 가져오기.
-- **LocationUtility**: 현재 위치 가져오기, 실시간 위치 추적.
-- **UserDefaultsUtility**: 간단한 데이터 저장 및 불러오기.
-- **HapticFeedbackUtility**: 다양한 햅틱 피드백 트리거.
-- **NotificationUtility**: 로컬 및 푸시 알림 생성, 관리.
+- **AssetUtility**: Access and manage photo albums, and retrieve photos and videos.
+- **LocationUtility**: Fetch current location and track real-time position updates.
+- **UserDefaultsUtility**: Easily store and retrieve simple key-value data.
+- **HapticFeedbackUtility**: Trigger various types of haptic feedback.
+- **NotificationUtility**: Create and manage local and push notifications.
 
-이외에도 각 유틸리티는 직관적인 API로 제공되어 프로젝트에 손쉽게 통합할 수 있습니다.
+Each utility is designed with a straightforward API for easy integration into your project.
 
-### 이슈 및 버그 리포트
+### Issue Reporting & Bugs
 
-- 버그나 개선 사항이 있다면 [이슈 탭](https://github.com/realsilex/Belt/issues)을 통해 언제든지 제보해 주세요.
-- 제안 사항이나 요청 사항도 환영합니다!
+If you encounter bugs or have improvement suggestions, feel free to report them via the [issue tracker](https://github.com/realsilex/Belt/issues).
+We also welcome feature requests and general feedback.
 
-## 라이센스
+## License
 
-Belt는 [MIT 라이센스](./LICENSE)를 따릅니다. 이 라이브러리를 자유롭게 사용, 수정 및 배포할 수 있습니다. 다만, 라이센스 내용에 따라 라이센스 파일을 포함해야 합니다.
+Belt is licensed under the [MIT License](./LICENSE). You are free to use, modify, and distribute this library, as long as you include the license file in your distribution.
 
-이 프로젝트가 마음에 드신다면 ⭐️를 눌러주시고, 기여를 통해 프로젝트를 함께 발전시켜 나가길 바랍니다!
+If you find this project helpful, please give it a ⭐️ and contribute to its improvement through pull requests and issue reporting!
+
+## Contact
+
+If you have any questions or need further assistance, feel free to contact us at [realsilex@gmail.com](mailto:realsilex@gmail.com).
