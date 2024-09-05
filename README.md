@@ -1,6 +1,6 @@
 # Belt 📦
 
-![Belt Utility Icon](belt.png)
+<img src="belt.png" alt="Belt Utility Icon" width="100" height="100">
 
 **Belt** is a utility library designed to make repetitive tasks in iOS development as easy as grabbing a tool from a utility belt. It provides abstractions for common tasks like photo album access, file management, location services, permissions handling, and more, all in a simple and reusable format.
 
