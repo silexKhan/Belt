@@ -24,6 +24,4 @@ public enum Vibrations: SystemSoundID {
     /// 세 번 진동 (트리플 탭)
     case tripleTap = 1523
     
-    /// 사용자 정의 진동 (커스텀)
-    case custom = kSystemSoundID_Vibrate
 }

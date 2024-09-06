@@ -1,6 +1,6 @@
 //
-//  File.swift
-//  
+//  AssetMetadata.swift
+//
 //
 //  Created by ahn kyu suk on 9/4/24.
 //

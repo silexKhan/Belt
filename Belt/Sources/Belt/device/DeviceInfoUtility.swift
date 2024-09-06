@@ -96,8 +96,8 @@ public class DeviceInfoUtility {
     public func getStorageInfo() -> (available: Double, total: Double)? {
         do {
             let fileURL = URL(fileURLWithPath: NSHomeDirectory() as String)
-            let values = try fileURL.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey, .volumeTotalCapacityKey])
-            if let available = values.volumeAvailableCapacityForImportantUsageKey, let total = values.volumeTotalCapacityKey {
+            let values = try fileURL.resourceValues(forKeys: [.volumeAvailableCapacityKey, .volumeTotalCapacityKey])
+            if let available = values.volumeAvailableCapacity, let total = values.volumeTotalCapacity {
                 return (Double(available) / 1024.0 / 1024.0, Double(total) / 1024.0 / 1024.0)
             } else {
                 return nil

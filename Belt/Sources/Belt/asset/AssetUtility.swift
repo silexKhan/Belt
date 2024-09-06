@@ -1,6 +1,6 @@
 //
-//  File.swift
-//  
+//  AssetUtility.swift
+//
 //
 //  Created by ahn kyu suk on 9/4/24.
 //
@@ -9,25 +9,23 @@ import Combine
 import Photos
 import UIKit
 
-/**
- AssetUtility 클래스는 iOS에서 사진첩에 접근하고, 자산을 불러오고 관리하는 기능을 제공하는 유틸리티 클래스입니다.
- 이 클래스는 비동기적으로 권한을 요청하고, 자산을 불러오거나 필터링하는 기능을 제공합니다.
- 
- 주요 기능:
- - **사진첩 권한 요청**: 사용자가 사진첩에 접근할 수 있도록 권한을 요청합니다.
- - **자산 불러오기**: 사진첩에서 사진이나 비디오 자산을 불러옵니다.
- - **자산 필터링 및 정렬**: 특정 필터 조건을 적용하거나 자산을 정렬하여 불러올 수 있습니다.
- - **썸네일 생성**: 사진의 썸네일을 생성할 수 있습니다.
- - **자산 삭제**: 불필요한 자산을 삭제할 수 있습니다.
- 
- 이 유틸리티는 사진첩과 관련된 작업을 간편하게 수행할 수 있도록 설계되었습니다.
- */
+/// The `AssetUtility` class provides functionalities to access, fetch, and manage assets (photos and videos) in the iOS photo library.
+/// This class enables asynchronous requests for permissions, fetching assets, filtering, sorting, and thumbnail generation.
+///
+/// Key Features:
+/// - **Request Photo Library Permissions**: Requests access permissions from the user to interact with the photo library.
+/// - **Fetch Assets**: Retrieves photos and videos from the photo library.
+/// - **Filter and Sort Assets**: Applies filtering criteria or sorting to fetch specific assets based on the given conditions.
+/// - **Thumbnail Generation**: Generates thumbnails for photos.
+/// - **Delete Assets**: Deletes unwanted assets from the photo library.
+///
+/// This utility is designed to make it easier to perform operations related to the photo library.
 public class AssetUtility {
     
     public init() { }
     
-    /// 사진첩 접근 권한을 요청하는 메서드
-    /// - Returns: 사진첩 접근 권한이 허용되었는지 여부를 비동기적으로 반환하는 `Future`
+    /// Requests access to the photo library.
+    /// - Returns: A `Future` that returns `true` if access is granted, otherwise `false`.
     public func requestPhotoLibraryAccess() -> Future<Bool, Never> {
         return Future { promise in
             PHPhotoLibrary.requestAuthorization { status in
@@ -41,8 +39,8 @@ public class AssetUtility {
         }
     }
     
-    /// 사진첩에서 이미지 자산을 비동기적으로 불러오는 메서드
-    /// - Returns: `PHAsset` 배열을 비동기적으로 반환하는 `Future`
+    /// Asynchronously fetches image assets from the photo library.
+    /// - Returns: A `Future` that returns an array of `PHAsset` objects.
     public func fetchAssets() -> Future<[PHAsset], Never> {
         return Future { promise in
             let fetchOptions = PHFetchOptions()
@@ -55,8 +53,8 @@ public class AssetUtility {
         }
     }
     
-    /// 비동기적으로 사진첩 자산을 로드하는 메서드
-    /// - Returns: 권한 요청 후 자산을 불러오는 `Publisher`
+    /// Loads photo assets after requesting permissions.
+    /// - Returns: A `Publisher` that returns an array of `PHAsset` objects if access is granted, otherwise an empty array.
     public func loadAssets() -> AnyPublisher<[PHAsset], Never> {
         return requestPhotoLibraryAccess()
             .flatMap { isGranted -> AnyPublisher<[PHAsset], Never> in
@@ -69,22 +67,9 @@ public class AssetUtility {
             .eraseToAnyPublisher()
     }
     
-    /// 사진첩에서 자산을 정렬하여 비동기적으로 불러오는 메서드입니다.
-    /// - Parameter option: 자산을 정렬할 기준을 정의하는 `AssetSortOption`입니다.
-    ///   생성일, 수정일 또는 파일 크기 기준으로 오름차순 또는 내림차순 정렬할 수 있습니다.
-    /// - Returns: 정렬된 `PHAsset` 배열을 반환하는 `Future` 객체입니다.
-    ///   자산을 불러오는데 성공하면 자산 배열을 전달하고, 실패 시에도 빈 배열을 반환합니다.
-    ///
-    /// 사용 예시:
-    /// ```swift
-    /// assetUtility.fetchAssetsSorted(by: .creationDate(ascending: true))
-    ///   .sink { assets in
-    ///       print("정렬된 자산: \(assets)")
-    ///   }
-    ///   .store(in: &cancellables)
-    /// ```
-    ///
-    /// 이 메서드는 비동기적으로 사진첩에 접근하여 사용자가 지정한 기준에 따라 자산을 정렬한 후 결과를 반환합니다.
+    /// Asynchronously fetches sorted assets from the photo library based on the given sorting option.
+    /// - Parameter option: The sorting criteria defined by `AssetSortOption`.
+    /// - Returns: A `Future` that returns an array of sorted `PHAsset` objects.
     public func fetchAssetsSorted(by option: AssetSortOption) -> Future<[PHAsset], Never> {
         return Future { promise in
             let fetchOptions = PHFetchOptions()
@@ -105,7 +90,9 @@ public class AssetUtility {
         }
     }
 
-    /// 특정 필터 조건에 맞는 자산을 불러오는 메서드
+    /// Asynchronously fetches assets filtered by a given criteria.
+    /// - Parameter option: The filter criteria defined by `AssetFilterOption`.
+    /// - Returns: A `Future` that returns an array of filtered `PHAsset` objects.
     public func fetchAssetsFiltered(by option: AssetFilterOption) -> Future<[PHAsset], Never> {
         return Future { promise in
             let fetchOptions = PHFetchOptions()
@@ -133,7 +120,9 @@ public class AssetUtility {
         }
     }
 
-    /// 특정 앨범에서 자산을 불러오는 메서드
+    /// Fetches assets from a specific album in the photo library.
+    /// - Parameter album: The name of the album to fetch assets from.
+    /// - Returns: A `Future` that returns an array of `PHAsset` objects in the album, or an empty array if the album is not found.
     public func fetchAssets(fromAlbum album: String) -> Future<[PHAsset], Never> {
         return Future { promise in
             let fetchOptions = PHFetchOptions()
@@ -152,7 +141,9 @@ public class AssetUtility {
         }
     }
 
-    /// 자산을 삭제하는 메서드
+    /// Deletes the given assets from the photo library.
+    /// - Parameter assets: The array of `PHAsset` objects to be deleted.
+    /// - Returns: A `Future` that returns `true` if deletion succeeds, otherwise an error.
     public func deleteAssets(_ assets: [PHAsset]) -> Future<Bool, Error> {
         return Future { promise in
             PHPhotoLibrary.shared().performChanges({
@@ -167,7 +158,9 @@ public class AssetUtility {
         }
     }
 
-    /// 자산을 저장하는 메서드
+    /// Saves a given image to the photo library.
+    /// - Parameter image: The `UIImage` object to save.
+    /// - Returns: A `Future` that returns `true` if the image is successfully saved, otherwise an error.
     public func saveAsset(image: UIImage) -> Future<Bool, Error> {
         return Future { promise in
             PHPhotoLibrary.shared().performChanges({
@@ -181,8 +174,10 @@ public class AssetUtility {
             })
         }
     }
-
-    /// 자산 메타데이터를 가져오는 메서드
+    
+    /// Fetches metadata for a given asset.
+    /// - Parameter asset: The `PHAsset` object for which metadata is being fetched.
+    /// - Returns: A `Future` that returns an `AssetMetadata` object containing metadata information.
     public func fetchAssetMetadata(for asset: PHAsset) -> Future<AssetMetadata, Never> {
         return Future { promise in
             let metadata = AssetMetadata(
@@ -195,7 +190,10 @@ public class AssetUtility {
         }
     }
 
-    /// 자산의 썸네일을 생성하는 메서드
+    /// Generates a thumbnail for a given asset.
+    /// - Parameter asset: The `PHAsset` object to generate a thumbnail for.
+    /// - Parameter size: The size of the desired thumbnail.
+    /// - Returns: A `Future` that returns a `UIImage` object representing the thumbnail.
     public func generateThumbnail(for asset: PHAsset, size: CGSize) -> Future<UIImage, Error> {
         return Future { promise in
             let options = PHImageRequestOptions()
@@ -204,13 +202,15 @@ public class AssetUtility {
                 if let image = image {
                     promise(.success(image))
                 } else {
-                    promise(.failure(NSError(domain: "com.example.AssetUtility", code: 1, userInfo: [NSLocalizedDescriptionKey: "썸네일을 생성할 수 없습니다."])))
+                    promise(.failure(NSError(domain: "com.example.AssetUtility", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unable to generate a thumbnail."])))
                 }
             }
         }
     }
 
-    /// 특정 미디어 유형의 자산 개수를 반환하는 메서드
+    /// Fetches the number of assets in the photo library for a given media type.
+    /// - Parameter mediaType: The media type to filter by (e.g., image, video).
+    /// - Returns: A `Future` that returns the count of assets of the specified type.
     public func getAssetCount(for mediaType: MediaType) -> Future<Int, Never> {
         return Future { promise in
             let fetchOptions = PHFetchOptions()

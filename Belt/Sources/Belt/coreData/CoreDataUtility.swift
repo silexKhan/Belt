@@ -172,12 +172,13 @@ public class CoreDataUtility {
     /// 배열 데이터를 CoreData에 저장하는 유틸리티 메서드
     /// - Parameter array: 저장할 배열 데이터
     /// - Parameter key: 배열 데이터를 저장할 엔티티의 속성 키
+    /// - Parameter entityType: 데이터를 저장할 엔티티 타입
     /// - Returns: 저장 성공 여부를 비동기적으로 반환하는 `AnyPublisher<Bool, CoreDataError>`
-    public func saveArray<T: Encodable>(_ array: [T], forKey key: String) -> AnyPublisher<Bool, CoreDataError> {
+    public func saveArray<T: Encodable>(_ array: [T], forKey key: String, entityType: NSManagedObject.Type) -> AnyPublisher<Bool, CoreDataError> {
         return Future { promise in
             do {
                 let data = try JSONEncoder().encode(array)
-                let entity = self.createEntity(MyEntity.self)
+                let entity = self.createEntity(entityType) // 외부에서 전달된 엔티티 타입 사용
                 entity.setValue(data, forKey: key)
                 try self.context.save()
                 promise(.success(true))
@@ -187,13 +188,13 @@ public class CoreDataUtility {
         }
         .eraseToAnyPublisher()
     }
-    
+
     /// 배열 데이터를 CoreData에서 불러오는 유틸리티 메서드
     /// - Parameter type: 불러올 배열 데이터의 타입
     /// - Parameter key: 배열 데이터를 저장한 엔티티의 속성 키
     /// - Parameter entity: 데이터를 불러올 엔티티
     /// - Returns: 배열 데이터를 비동기적으로 반환하는 `AnyPublisher<[T], CoreDataError>`
-    public func fetchArray<T: Decodable>(_ type: T.Type, forKey key: String, from entity: MyEntity) -> AnyPublisher<[T], CoreDataError> {
+    public func fetchArray<T: Decodable>(_ type: T.Type, forKey key: String, from entity: NSManagedObject) -> AnyPublisher<[T], CoreDataError> {
         return Future { promise in
             guard let data = entity.value(forKey: key) as? Data else {
                 promise(.success([]))  // 데이터가 없을 때 빈 배열 반환
@@ -216,8 +217,9 @@ public class CoreDataUtility {
     /// - Returns: 업데이트 성공 여부를 비동기적으로 반환하는 `AnyPublisher<Bool, CoreDataError>`
     public func batchUpdateEntity<T: NSManagedObject>(_ entity: T.Type, propertiesToUpdate: [String: Any]) -> AnyPublisher<Bool, CoreDataError> {
         return Future { promise in
-            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: entity))
-            let batchUpdateRequest = NSBatchUpdateRequest(fetchRequest: fetchRequest)
+            let entityName = String(describing: entity)  // 엔티티 이름 가져오기
+            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
+            let batchUpdateRequest = NSBatchUpdateRequest(entityName: entityName)
             batchUpdateRequest.resultType = .updatedObjectsCountResultType
             batchUpdateRequest.propertiesToUpdate = propertiesToUpdate
             

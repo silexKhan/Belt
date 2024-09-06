@@ -5,60 +5,6 @@
 //  Created by ahn kyu suk on 9/5/24.
 //
 
-/**
- AudioUtility 클래스는 iOS에서 오디오 재생, 볼륨 제어 및 시스템 사운드를 쉽게 처리할 수 있도록 설계된 유틸리티 클래스입니다. 번들에 포함된 오디오 파일을 재생하고, 시스템 사운드 및 진동을 재생하며, 시스템 볼륨을 제어할 수 있습니다. Combine을 활용해 오디오 재생 상태와 볼륨 변경을 실시간으로 구독할 수 있습니다.
-
- ## 주요 기능:
- - **번들 오디오 파일 재생**: 번들에 포함된 오디오 파일을 재생할 수 있습니다.
- - **시스템 사운드 재생**: iOS에서 제공하는 시스템 사운드를 재생할 수 있습니다.
- - **진동 재생**: 진동을 발생시킬 수 있습니다.
- - **볼륨 제어**: 시스템 볼륨을 변경하고, 실시간으로 볼륨 변화를 감지할 수 있습니다.
- - **Combine 지원**: Combine을 통해 오디오 재생 상태 및 볼륨 변화를 실시간으로 구독할 수 있습니다.
-
- ## 사용 예시:
- ```swift
- let audioUtility = AudioUtility()
-
- // 번들 오디오 파일 재생
- audioUtility.playSound(named: "test", withExtension: "mp3")
-     .sink(receiveCompletion: { completion in
-         if case .failure(let error) = completion {
-             print("Error playing sound: \(error)")
-         }
-     }, receiveValue: { success in
-         print("Sound played successfully: \(success)")
-     })
-
- // 시스템 사운드 재생
- audioUtility.playSystemSound(.lockDevice)
- 
- // 진동 발생
- audioUtility.playVibration(pattern: .light)
- 
- // 현재 시스템 볼륨 가져오기
- let volume = audioUtility.getSystemVolume()
- print("Current system volume: \(volume)")
-
- // 볼륨 변경 감지 구독
- let cancellableVolume = audioUtility.volumePublisher
-     .sink { newVolume in
-         print("Volume changed to: \(newVolume)")
-     }
- 
- // 오디오 재생 상태 구독
- let cancellablePlaying = audioUtility.isPlayingPublisher
-     .sink { isPlaying in
-         print("Is audio playing? \(isPlaying)")
-     }
- 
- // MPVolumeView를 제공하여 볼륨 조절 UI 추가, 코드에서 직접 제어가 불가능해서 UI를 제공함
- let volumeView = audioUtility.provideVolumeView(frame: CGRect(x: 20, y: 100, width: 250, height: 50))
- view.addSubview(volumeView)
- ```
- 
- 이 클래스는 오디오 관련 작업을 간편하게 수행할 수 있도록 구성되어 있으며, Combine을 통해 상태 변경을 실시간으로 처리할 수 있습니다.
- */
-
 import Foundation
 import AVFoundation
 import Combine
@@ -66,7 +12,47 @@ import MediaPlayer
 import AudioToolbox
 import UIKit
 
-/// 오디오 유틸리티 클래스: 번들 사운드 재생, 시스템 사운드 재생, 볼륨 UI 제공
+/// The `AudioUtility` class is designed to simplify audio playback, volume control, and vibration handling in iOS apps.
+/// It provides features to play sounds from the app's bundle, trigger system sounds and vibrations, control the system volume,
+/// and subscribe to real-time audio playback and volume changes using Combine.
+///
+/// ## Features:
+/// - **Play bundled audio files**: Easily play audio files included in the app's bundle.
+/// - **Play system sounds**: Trigger system sounds like device lock or notification sounds.
+/// - **Play vibration patterns**: Trigger vibration patterns using system vibrations.
+/// - **Monitor system volume**: Get the current system volume and observe real-time volume changes.
+/// - **Combine support**: Use Combine to subscribe to audio playback status and volume changes.
+///
+/// ## Example Usage:
+/// ```swift
+/// let audioUtility = AudioUtility()
+///
+/// // Play a sound from the app's bundle
+/// audioUtility.playSound(named: "sound", withExtension: "mp3")
+///     .sink(receiveCompletion: { completion in
+///         if case .failure(let error) = completion {
+///             print("Error playing sound: \(error)")
+///         }
+///     }, receiveValue: { success in
+///         print("Sound played successfully: \(success)")
+///     })
+///
+/// // Play a system sound
+/// audioUtility.playSystemSound(.lockDevice)
+///
+/// // Trigger a vibration pattern
+/// audioUtility.playVibration(pattern: .light)
+///
+/// // Subscribe to volume changes
+/// let cancellableVolume = audioUtility.volumePublisher
+///     .sink { newVolume in
+///         print("Volume changed to: \(newVolume)")
+///     }
+///
+/// // Provide a volume control UI
+/// let volumeView = audioUtility.provideVolumeView(frame: CGRect(x: 20, y: 100, width: 250, height: 50))
+/// view.addSubview(volumeView)
+/// ```
 public class AudioUtility: NSObject {
     
     private var audioPlayer: AVAudioPlayer?
@@ -80,12 +66,19 @@ public class AudioUtility: NSObject {
         return volumeSubject.eraseToAnyPublisher()
     }
     
+    //combine
+    private var cancellables: Set<AnyCancellable> = []
+    
     override public init() {
         super.init()
         observeVolumeChanges()
     }
 
-    /// 번들에 포함된 오디오 파일 재생
+    /// Plays an audio file included in the app's bundle.
+    /// - Parameters:
+    ///   - fileName: The name of the audio file (without the extension).
+    ///   - ext: The file extension (e.g., "mp3", "wav").
+    /// - Returns: A publisher that emits `true` if the sound played successfully, or an error if playback failed.
     public func playSound(named fileName: String, withExtension ext: String) -> AnyPublisher<Bool, Error> {
         return Future { promise in
             guard let url = Bundle.main.url(forResource: fileName, withExtension: ext) else {
@@ -106,43 +99,58 @@ public class AudioUtility: NSObject {
         .eraseToAnyPublisher()
     }
     
-    /// 시스템 사운드 재생
+    /// Plays a system sound based on the specified sound identifier.
+    /// - Parameter sound: The system sound to be played (e.g., lock device sound, notification sound).
     public func playSystemSound(_ sound: SystemSound) {
         AudioServicesPlaySystemSound(sound.rawValue)
     }
     
-    /// 진동 재생
+    /// Triggers a vibration pattern.
+    /// - Parameter pattern: The vibration pattern to trigger (e.g., light, medium, or heavy vibration).
     public func playVibration(pattern: Vibrations) {
         AudioServicesPlaySystemSound(pattern.rawValue)
     }
     
-    /// 현재 시스템 볼륨 크기를 가져오는 메서드
+    /// Retrieves the current system volume level.
+    /// - Returns: The current system volume as a float value between 0.0 (mute) and 1.0 (maximum).
     public func getSystemVolume() -> Float {
         return AVAudioSession.sharedInstance().outputVolume
     }
     
-    /// 시스템 볼륨 변경 감지
+    /// Observes changes in the system volume and publishes the updated volume.
+    /// This method uses Key-Value Observing (KVO) to detect volume changes.
     private func observeVolumeChanges() {
         let audioSession = AVAudioSession.sharedInstance()
         try? audioSession.setActive(true)
-        NotificationCenter.default.addObserver(forName: .AVAudioSessionOutputVolumeDidChange, object: nil, queue: .main) { notification in
-            let volume = audioSession.outputVolume
-            self.volumeSubject.send(volume)
-        }
+        
+        // Key-Value Observing (KVO)로 볼륨 변경 감지
+        audioSession.publisher(for: \.outputVolume)
+            .sink { newVolume in
+                let volume = audioSession.outputVolume
+                self.volumeSubject.send(volume)
+            }
+            .store(in: &cancellables)
     }
-
-    /// MPVolumeView를 제공하여 시스템 볼륨을 조절할 수 있는 UI를 생성하는 메서드
+    /// Provides a volume control UI using `MPVolumeView`.
+    /// This is required to give users manual control over the system volume, as programmatic volume changes are restricted.
+    /// - Parameter frame: The frame to display the volume control view.
+    /// - Returns: An `MPVolumeView` instance that displays the volume slider.
     public func provideVolumeView(frame: CGRect) -> MPVolumeView {
         let volumeView = MPVolumeView(frame: frame)
         volumeView.showsVolumeSlider = true
-        volumeView.showsRouteButton = false  // Route 버튼을 숨길 수도 있습니다
+        volumeView.showsRouteButton = false
         return volumeView
     }
 }
 
-// MARK: - AVAudioPlayerDelegate
+
 extension AudioUtility: AVAudioPlayerDelegate {
+    
+    /// Delegate method that triggers when audio playback finishes.
+    /// Updates the `isPlayingPublisher` to notify subscribers that playback has completed.
+    /// - Parameter player: The audio player that completed playback.
+    /// - Parameter flag: Indicates whether the playback finished successfully.
     public func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
-        isPlayingPublisher.send(false)
+        isPlayingPublisher.send(!flag)
     }
 }

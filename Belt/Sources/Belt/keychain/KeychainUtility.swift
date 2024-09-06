@@ -79,9 +79,11 @@ public class KeychainUtility {
             return (data.first == 1) as? T
         } else if type == Int.self {
             return data.withUnsafeBytes { $0.load(as: Int.self) } as? T
-        } else if type is Codable.Type {
+        } else if let codableType = type as? Codable.Type {
             let decoder = JSONDecoder()
-            return try? decoder.decode(type as! Codable.Type, from: data) as? T
+            if let decoded = try? decoder.decode(codableType, from: data) as? T {
+                return decoded
+            }
         }
         
         return nil
