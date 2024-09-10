@@ -50,6 +50,7 @@ import UIKit
 
 public class AnimationUtility {
     
+    public init() {}    
     /// Fade out animation for a view
     /// - Parameters:
     ///   - view: The view to fade out

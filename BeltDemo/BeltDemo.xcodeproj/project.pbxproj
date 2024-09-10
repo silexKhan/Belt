@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		4C485D8D2C881FF800E8BEE2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C485D8C2C881FF800E8BEE2 /* AppDelegate.swift */; };
 		4C485D8F2C881FF800E8BEE2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C485D8E2C881FF800E8BEE2 /* SceneDelegate.swift */; };
-		4C485D912C881FF800E8BEE2 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C485D902C881FF800E8BEE2 /* ViewController.swift */; };
 		4C485D942C881FF800E8BEE2 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 4C485D932C881FF800E8BEE2 /* Base */; };
 		4C485D962C881FFA00E8BEE2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4C485D952C881FFA00E8BEE2 /* Assets.xcassets */; };
 		4C485D992C881FFA00E8BEE2 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 4C485D982C881FFA00E8BEE2 /* Base */; };
@@ -20,6 +19,13 @@
 		4C485DC32C88413000E8BEE2 /* AssetUtilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C485DC22C88413000E8BEE2 /* AssetUtilityTests.swift */; };
 		4C485DC52C884E4800E8BEE2 /* FileUtilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C485DC42C884E4800E8BEE2 /* FileUtilityTests.swift */; };
 		4C485DC72C88601F00E8BEE2 /* LocationUtilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C485DC62C88601F00E8BEE2 /* LocationUtilityTests.swift */; };
+		4CB53E4B2C8FF0DB00D70C0B /* BeltListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CB53E4A2C8FF0DB00D70C0B /* BeltListViewController.swift */; };
+		4CB53E4F2C8FF2A700D70C0B /* BeltListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CB53E4E2C8FF2A700D70C0B /* BeltListViewModel.swift */; };
+		4CB53E522C8FF4E100D70C0B /* BeltUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CB53E512C8FF4E100D70C0B /* BeltUtility.swift */; };
+		4CB53E552C8FF90E00D70C0B /* Animation.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4CB53E542C8FF90E00D70C0B /* Animation.storyboard */; };
+		4CB53E582C8FFEE800D70C0B /* BeltListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CB53E572C8FFEE800D70C0B /* BeltListCell.swift */; };
+		4CB53E5A2C9007DE00D70C0B /* AnimationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CB53E592C9007DE00D70C0B /* AnimationViewController.swift */; };
+		4CB53E5D2C900AC300D70C0B /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CB53E5C2C900AC300D70C0B /* Extensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -43,7 +49,6 @@
 		4C485D892C881FF800E8BEE2 /* BeltDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BeltDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C485D8C2C881FF800E8BEE2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		4C485D8E2C881FF800E8BEE2 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		4C485D902C881FF800E8BEE2 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		4C485D932C881FF800E8BEE2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		4C485D952C881FFA00E8BEE2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4C485D982C881FFA00E8BEE2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -56,6 +61,13 @@
 		4C485DC22C88413000E8BEE2 /* AssetUtilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetUtilityTests.swift; sourceTree = "<group>"; };
 		4C485DC42C884E4800E8BEE2 /* FileUtilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUtilityTests.swift; sourceTree = "<group>"; };
 		4C485DC62C88601F00E8BEE2 /* LocationUtilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationUtilityTests.swift; sourceTree = "<group>"; };
+		4CB53E4A2C8FF0DB00D70C0B /* BeltListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeltListViewController.swift; sourceTree = "<group>"; };
+		4CB53E4E2C8FF2A700D70C0B /* BeltListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeltListViewModel.swift; sourceTree = "<group>"; };
+		4CB53E512C8FF4E100D70C0B /* BeltUtility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeltUtility.swift; sourceTree = "<group>"; };
+		4CB53E542C8FF90E00D70C0B /* Animation.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Animation.storyboard; sourceTree = "<group>"; };
+		4CB53E572C8FFEE800D70C0B /* BeltListCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeltListCell.swift; sourceTree = "<group>"; };
+		4CB53E592C9007DE00D70C0B /* AnimationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationViewController.swift; sourceTree = "<group>"; };
+		4CB53E5C2C900AC300D70C0B /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -108,10 +120,10 @@
 		4C485D8B2C881FF800E8BEE2 /* BeltDemo */ = {
 			isa = PBXGroup;
 			children = (
+				4CB53E5B2C900ABB00D70C0B /* common */,
+				4CB53E472C8FF09500D70C0B /* view */,
 				4C485D8C2C881FF800E8BEE2 /* AppDelegate.swift */,
 				4C485D8E2C881FF800E8BEE2 /* SceneDelegate.swift */,
-				4C485D902C881FF800E8BEE2 /* ViewController.swift */,
-				4C485D922C881FF800E8BEE2 /* Main.storyboard */,
 				4C485D952C881FFA00E8BEE2 /* Assets.xcassets */,
 				4C485D972C881FFA00E8BEE2 /* LaunchScreen.storyboard */,
 				4C485D9A2C881FFA00E8BEE2 /* Info.plist */,
@@ -144,6 +156,76 @@
 			children = (
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		4CB53E472C8FF09500D70C0B /* view */ = {
+			isa = PBXGroup;
+			children = (
+				4CB53E4D2C8FF15B00D70C0B /* example */,
+				4CB53E492C8FF0B500D70C0B /* main */,
+			);
+			path = view;
+			sourceTree = "<group>";
+		};
+		4CB53E482C8FF0A400D70C0B /* model */ = {
+			isa = PBXGroup;
+			children = (
+				4CB53E4E2C8FF2A700D70C0B /* BeltListViewModel.swift */,
+			);
+			path = model;
+			sourceTree = "<group>";
+		};
+		4CB53E492C8FF0B500D70C0B /* main */ = {
+			isa = PBXGroup;
+			children = (
+				4CB53E502C8FF4C400D70C0B /* enum */,
+				4CB53E482C8FF0A400D70C0B /* model */,
+				4CB53E562C8FFED200D70C0B /* cell */,
+				4C485D922C881FF800E8BEE2 /* Main.storyboard */,
+				4CB53E4A2C8FF0DB00D70C0B /* BeltListViewController.swift */,
+			);
+			path = main;
+			sourceTree = "<group>";
+		};
+		4CB53E4D2C8FF15B00D70C0B /* example */ = {
+			isa = PBXGroup;
+			children = (
+				4CB53E532C8FF8FF00D70C0B /* animation */,
+			);
+			path = example;
+			sourceTree = "<group>";
+		};
+		4CB53E502C8FF4C400D70C0B /* enum */ = {
+			isa = PBXGroup;
+			children = (
+				4CB53E512C8FF4E100D70C0B /* BeltUtility.swift */,
+			);
+			path = enum;
+			sourceTree = "<group>";
+		};
+		4CB53E532C8FF8FF00D70C0B /* animation */ = {
+			isa = PBXGroup;
+			children = (
+				4CB53E542C8FF90E00D70C0B /* Animation.storyboard */,
+				4CB53E592C9007DE00D70C0B /* AnimationViewController.swift */,
+			);
+			path = animation;
+			sourceTree = "<group>";
+		};
+		4CB53E562C8FFED200D70C0B /* cell */ = {
+			isa = PBXGroup;
+			children = (
+				4CB53E572C8FFEE800D70C0B /* BeltListCell.swift */,
+			);
+			path = cell;
+			sourceTree = "<group>";
+		};
+		4CB53E5B2C900ABB00D70C0B /* common */ = {
+			isa = PBXGroup;
+			children = (
+				4CB53E5C2C900AC300D70C0B /* Extensions.swift */,
+			);
+			path = common;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -259,6 +341,7 @@
 				4C485D962C881FFA00E8BEE2 /* Assets.xcassets in Resources */,
 				4C485D992C881FFA00E8BEE2 /* Base in Resources */,
 				4C485D942C881FF800E8BEE2 /* Base in Resources */,
+				4CB53E552C8FF90E00D70C0B /* Animation.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -283,8 +366,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4C485D912C881FF800E8BEE2 /* ViewController.swift in Sources */,
+				4CB53E4B2C8FF0DB00D70C0B /* BeltListViewController.swift in Sources */,
+				4CB53E4F2C8FF2A700D70C0B /* BeltListViewModel.swift in Sources */,
+				4CB53E5A2C9007DE00D70C0B /* AnimationViewController.swift in Sources */,
+				4CB53E5D2C900AC300D70C0B /* Extensions.swift in Sources */,
+				4CB53E522C8FF4E100D70C0B /* BeltUtility.swift in Sources */,
 				4C485D8D2C881FF800E8BEE2 /* AppDelegate.swift in Sources */,
+				4CB53E582C8FFEE800D70C0B /* BeltListCell.swift in Sources */,
 				4C485D8F2C881FF800E8BEE2 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
