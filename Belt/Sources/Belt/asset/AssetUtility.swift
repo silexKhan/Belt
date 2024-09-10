@@ -9,17 +9,73 @@ import Combine
 import Photos
 import UIKit
 
-/// The `AssetUtility` class provides functionalities to access, fetch, and manage assets (photos and videos) in the iOS photo library.
-/// This class enables asynchronous requests for permissions, fetching assets, filtering, sorting, and thumbnail generation.
+/// AssetUtility is a utility class that provides methods to interact with the photo library.
+/// It allows requesting access to the photo library, fetching and manipulating assets, generating thumbnails, and handling asset metadata.
 ///
-/// Key Features:
-/// - **Request Photo Library Permissions**: Requests access permissions from the user to interact with the photo library.
-/// - **Fetch Assets**: Retrieves photos and videos from the photo library.
-/// - **Filter and Sort Assets**: Applies filtering criteria or sorting to fetch specific assets based on the given conditions.
-/// - **Thumbnail Generation**: Generates thumbnails for photos.
-/// - **Delete Assets**: Deletes unwanted assets from the photo library.
+/// Example usage:
 ///
-/// This utility is designed to make it easier to perform operations related to the photo library.
+/// ```swift
+/// let assetUtility = AssetUtility()
+///
+/// // Request access to the photo library and load assets if granted
+/// assetUtility.loadAssets()
+///     .sink { assets in
+///         print("Fetched \(assets.count) assets")
+///     }
+///     .store(in: &cancellables)
+///
+/// // Fetch assets sorted by creation date
+/// assetUtility.fetchAssetsSorted(by: .creationDate(ascending: true))
+///     .sink { sortedAssets in
+///         print("Fetched and sorted \(sortedAssets.count) assets")
+///     }
+///     .store(in: &cancellables)
+///
+/// // Generate a thumbnail for an asset
+/// assetUtility.generateThumbnail(for: asset, size: CGSize(width: 100, height: 100))
+///     .sink { result in
+///         switch result {
+///         case .success(let thumbnail):
+///             print("Thumbnail generated successfully")
+///         case .failure(let error):
+///             print("Failed to generate thumbnail: \(error.localizedDescription)")
+///         }
+///     }
+///     .store(in: &cancellables)
+///
+/// // Save an image to the photo library
+/// assetUtility.saveAsset(image: someUIImage)
+///     .sink { result in
+///         switch result {
+///         case .success(let isSuccess):
+///             print(isSuccess ? "Image saved successfully" : "Failed to save image")
+///         case .failure(let error):
+///             print("Error saving image: \(error.localizedDescription)")
+///         }
+///     }
+///     .store(in: &cancellables)
+///
+/// // Fetch metadata for an asset
+/// assetUtility.fetchAssetMetadata(for: asset)
+///     .sink { metadata in
+///         print("Metadata - File size: \(metadata.fileSize), Resolution: \(metadata.resolution)")
+///     }
+///     .store(in: &cancellables)
+///
+/// // Delete assets from the photo library
+/// assetUtility.deleteAssets([asset1, asset2])
+///     .sink { result in
+///         switch result {
+///         case .success(let isSuccess):
+///             print(isSuccess ? "Assets deleted successfully" : "Failed to delete assets")
+///         case .failure(let error):
+///             print("Error deleting assets: \(error.localizedDescription)")
+///         }
+///     }
+///     .store(in: &cancellables)
+/// ```
+///
+/// This utility simplifies interaction with the photo library by wrapping operations in Combine's Future/Publisher-based structure, allowing for asynchronous handling of assets and permissions.
 public class AssetUtility {
     
     public init() { }

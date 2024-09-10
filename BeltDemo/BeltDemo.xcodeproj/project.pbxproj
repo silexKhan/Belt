@@ -26,6 +26,10 @@
 		4CB53E582C8FFEE800D70C0B /* BeltListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CB53E572C8FFEE800D70C0B /* BeltListCell.swift */; };
 		4CB53E5A2C9007DE00D70C0B /* AnimationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CB53E592C9007DE00D70C0B /* AnimationViewController.swift */; };
 		4CB53E5D2C900AC300D70C0B /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CB53E5C2C900AC300D70C0B /* Extensions.swift */; };
+		4CB53E602C9027B300D70C0B /* Asset.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4CB53E5F2C9027B300D70C0B /* Asset.storyboard */; };
+		4CB53E622C9027BE00D70C0B /* AssetViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CB53E612C9027BE00D70C0B /* AssetViewController.swift */; };
+		4CB53E652C9032B200D70C0B /* AssetViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CB53E642C9032B200D70C0B /* AssetViewModel.swift */; };
+		4CB53E682C90405500D70C0B /* AssetViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CB53E672C90405500D70C0B /* AssetViewCell.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -68,6 +72,10 @@
 		4CB53E572C8FFEE800D70C0B /* BeltListCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeltListCell.swift; sourceTree = "<group>"; };
 		4CB53E592C9007DE00D70C0B /* AnimationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationViewController.swift; sourceTree = "<group>"; };
 		4CB53E5C2C900AC300D70C0B /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		4CB53E5F2C9027B300D70C0B /* Asset.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Asset.storyboard; sourceTree = "<group>"; };
+		4CB53E612C9027BE00D70C0B /* AssetViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetViewController.swift; sourceTree = "<group>"; };
+		4CB53E642C9032B200D70C0B /* AssetViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetViewModel.swift; sourceTree = "<group>"; };
+		4CB53E672C90405500D70C0B /* AssetViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetViewCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -191,6 +199,7 @@
 			isa = PBXGroup;
 			children = (
 				4CB53E532C8FF8FF00D70C0B /* animation */,
+				4CB53E5E2C90279B00D70C0B /* asset */,
 			);
 			path = example;
 			sourceTree = "<group>";
@@ -226,6 +235,33 @@
 				4CB53E5C2C900AC300D70C0B /* Extensions.swift */,
 			);
 			path = common;
+			sourceTree = "<group>";
+		};
+		4CB53E5E2C90279B00D70C0B /* asset */ = {
+			isa = PBXGroup;
+			children = (
+				4CB53E632C9032A100D70C0B /* model */,
+				4CB53E662C90403B00D70C0B /* cell */,
+				4CB53E5F2C9027B300D70C0B /* Asset.storyboard */,
+				4CB53E612C9027BE00D70C0B /* AssetViewController.swift */,
+			);
+			path = asset;
+			sourceTree = "<group>";
+		};
+		4CB53E632C9032A100D70C0B /* model */ = {
+			isa = PBXGroup;
+			children = (
+				4CB53E642C9032B200D70C0B /* AssetViewModel.swift */,
+			);
+			path = model;
+			sourceTree = "<group>";
+		};
+		4CB53E662C90403B00D70C0B /* cell */ = {
+			isa = PBXGroup;
+			children = (
+				4CB53E672C90405500D70C0B /* AssetViewCell.swift */,
+			);
+			path = cell;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -339,6 +375,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4C485D962C881FFA00E8BEE2 /* Assets.xcassets in Resources */,
+				4CB53E602C9027B300D70C0B /* Asset.storyboard in Resources */,
 				4C485D992C881FFA00E8BEE2 /* Base in Resources */,
 				4C485D942C881FF800E8BEE2 /* Base in Resources */,
 				4CB53E552C8FF90E00D70C0B /* Animation.storyboard in Resources */,
@@ -368,11 +405,14 @@
 			files = (
 				4CB53E4B2C8FF0DB00D70C0B /* BeltListViewController.swift in Sources */,
 				4CB53E4F2C8FF2A700D70C0B /* BeltListViewModel.swift in Sources */,
+				4CB53E682C90405500D70C0B /* AssetViewCell.swift in Sources */,
 				4CB53E5A2C9007DE00D70C0B /* AnimationViewController.swift in Sources */,
 				4CB53E5D2C900AC300D70C0B /* Extensions.swift in Sources */,
 				4CB53E522C8FF4E100D70C0B /* BeltUtility.swift in Sources */,
+				4CB53E652C9032B200D70C0B /* AssetViewModel.swift in Sources */,
 				4C485D8D2C881FF800E8BEE2 /* AppDelegate.swift in Sources */,
 				4CB53E582C8FFEE800D70C0B /* BeltListCell.swift in Sources */,
+				4CB53E622C9027BE00D70C0B /* AssetViewController.swift in Sources */,
 				4C485D8F2C881FF800E8BEE2 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
