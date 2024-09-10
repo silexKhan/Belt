@@ -5,99 +5,113 @@
 //  Created by ahn kyu suk on 9/5/24.
 //
 
-/// `DeviceInfoUtility`는 iOS 디바이스와 관련된 다양한 정보를 제공하는 유틸리티 클래스입니다.
-/// 이 유틸리티를 사용하여 기기 이름, 모델, 운영체제 버전, 배터리 상태, 화면 해상도, 메모리 상태, 저장 공간 등의 정보를 쉽게 조회할 수 있습니다.
+/// A utility class for retrieving various information about the current iOS device.
+/// This class provides methods to access details such as device name, model, operating system version,
+/// battery information, screen resolution, available memory, and storage capacity.
 ///
-/// ### 주요 기능:
-/// - 기기 이름, 모델, 운영체제 버전 확인
-/// - 배터리 상태 및 레벨 확인
-/// - 디바이스 화면 해상도 조회
-/// - 사용 가능한 메모리 및 저장 공간 확인
+/// The class utilizes `UIDevice`, `UIScreen`, and `ProcessInfo` to gather relevant information.
+/// For storage details, it uses the file system to check available and total capacity.
 ///
-/// ### 사용 예시:
+/// # Usage Example:
+///
 /// ```swift
 /// let deviceInfo = DeviceInfoUtility()
 ///
-/// // 기기 이름 확인
-/// print("Device Name: \(deviceInfo.getDeviceName())")
+/// // Get device name
+/// let deviceName = deviceInfo.getDeviceName()
+/// print("Device Name: \(deviceName)")
 ///
-/// // 운영체제 버전 확인
-/// print("OS Version: \(deviceInfo.getOSVersion())")
+/// // Get device model
+/// let deviceModel = deviceInfo.getDeviceModel()
+/// print("Device Model: \(deviceModel)")
 ///
-/// // 배터리 레벨 확인
-/// print("Battery Level: \(deviceInfo.getBatteryLevel())")
+/// // Get OS version
+/// let osVersion = deviceInfo.getOSVersion()
+/// print("OS Version: \(osVersion)")
 ///
-/// // 화면 해상도 확인
-/// print("Screen Resolution: \(deviceInfo.getScreenResolution())")
+/// // Get battery level
+/// let batteryLevel = deviceInfo.getBatteryLevel()
+/// print("Battery Level: \(batteryLevel * 100)%")
 ///
-/// // 메모리 상태 확인
-/// print("Available Memory: \(deviceInfo.getAvailableMemory()) MB")
+/// // Get screen resolution
+/// let screenResolution = deviceInfo.getScreenResolution()
+/// print("Screen Resolution: \(screenResolution.width) x \(screenResolution.height)")
 ///
-/// // 저장 공간 정보 확인
+/// // Get available memory
+/// let availableMemory = deviceInfo.getAvailableMemory()
+/// print("Available Memory: \(availableMemory) MB")
+///
+/// // Get storage information
 /// if let storageInfo = deviceInfo.getStorageInfo() {
-///     print("Available Storage: \(storageInfo.available) MB, Total Storage: \(storageInfo.total) MB")
+///     print("Available Storage: \(storageInfo.available) MB")
+///     print("Total Storage: \(storageInfo.total) MB")
+/// } else {
+///     print("Failed to retrieve storage information")
 /// }
 /// ```
-
 import Foundation
 import UIKit
 
 public class DeviceInfoUtility {
     
-    /// 현재 기기의 이름을 반환합니다.
-    /// - Returns: 기기의 이름 (예: "John's iPhone")
+    /// Returns the current device's name.
+    /// - Returns: The name of the device (e.g., "John's iPhone").
     public func getDeviceName() -> String {
         return UIDevice.current.name
     }
     
-    /// 현재 기기의 모델을 반환합니다.
-    /// - Returns: 기기의 모델명 (예: "iPhone", "iPad")
+    /// Returns the current device's model.
+    /// - Returns: The model of the device (e.g., "iPhone", "iPad").
     public func getDeviceModel() -> String {
         return UIDevice.current.model
     }
     
-    /// 현재 운영체제의 버전을 반환합니다.
-    /// - Returns: iOS 운영체제 버전 (예: "14.2")
+    /// Returns the current operating system version.
+    /// - Returns: The iOS version (e.g., "14.2").
     public func getOSVersion() -> String {
         return UIDevice.current.systemVersion
     }
     
-    /// 배터리 레벨을 반환합니다.
-    /// - Returns: 배터리 레벨 (0.0 ~ 1.0)
+    /// Returns the current battery level of the device.
+    /// - Returns: The battery level (0.0 to 1.0).
     public func getBatteryLevel() -> Float {
         UIDevice.current.isBatteryMonitoringEnabled = true
-        return UIDevice.current.batteryLevel
+        let level = UIDevice.current.batteryLevel
+        UIDevice.current.isBatteryMonitoringEnabled = false  // Disable battery monitoring after use
+        return level
     }
     
-    /// 배터리 상태를 반환합니다.
-    /// - Returns: 배터리 상태 (`UIDevice.BatteryState`)
+    /// Returns the current battery state of the device.
+    /// - Returns: The battery state (`UIDevice.BatteryState`).
     public func getBatteryState() -> UIDevice.BatteryState {
         UIDevice.current.isBatteryMonitoringEnabled = true
-        return UIDevice.current.batteryState
+        let state = UIDevice.current.batteryState
+        UIDevice.current.isBatteryMonitoringEnabled = false  // Disable battery monitoring after use
+        return state
     }
     
-    /// 화면 해상도 정보를 반환합니다.
-    /// - Returns: 화면 해상도 정보 (`CGSize`)
+    /// Returns the screen resolution of the device in pixels.
+    /// - Returns: The screen resolution as a `CGSize` object.
     public func getScreenResolution() -> CGSize {
         let screenSize = UIScreen.main.bounds.size
         let scale = UIScreen.main.scale
         return CGSize(width: screenSize.width * scale, height: screenSize.height * scale)
     }
     
-    /// 사용 가능한 메모리 정보를 반환합니다.
-    /// - Returns: 사용 가능한 메모리 크기 (MB 단위)
+    /// Returns the total physical memory of the device.
+    /// - Returns: The total physical memory of the device in megabytes (MB).
     public func getAvailableMemory() -> Double {
         let memoryInfo = ProcessInfo.processInfo.physicalMemory
         return Double(memoryInfo) / 1024.0 / 1024.0
     }
     
-    /// 디바이스의 저장 공간 정보를 반환합니다.
-    /// - Returns: 저장 공간 정보 (사용 가능한 공간, 총 공간) (단위: MB)
+    /// Returns information about the device's storage capacity.
+    /// - Returns: A tuple containing the available and total storage space in megabytes (MB), or `nil` if an error occurs.
     public func getStorageInfo() -> (available: Double, total: Double)? {
         do {
             let fileURL = URL(fileURLWithPath: NSHomeDirectory() as String)
-            let values = try fileURL.resourceValues(forKeys: [.volumeAvailableCapacityKey, .volumeTotalCapacityKey])
-            if let available = values.volumeAvailableCapacity, let total = values.volumeTotalCapacity {
+            let values = try fileURL.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey, .volumeTotalCapacityKey])
+            if let available = values.volumeAvailableCapacityForImportantUsage, let total = values.volumeTotalCapacity {
                 return (Double(available) / 1024.0 / 1024.0, Double(total) / 1024.0 / 1024.0)
             } else {
                 return nil

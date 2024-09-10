@@ -5,61 +5,65 @@
 //  Created by ahn kyu suk on 9/5/24.
 //
 
-
-/// ReachabilityUtility는 네트워크 연결 상태(Wi-Fi, 셀룰러 등)를 실시간으로 감지하는 유틸리티 클래스입니다.
-/// 이 클래스를 사용하면 네트워크 연결 여부와 연결된 네트워크 타입을 실시간으로 구독할 수 있습니다.
-///
-/// - 네트워크 상태 변경 시, 연결 여부(`Bool`)와 연결된 네트워크 타입(`NetworkConnectionType`)을 외부로 전달합니다.
-///
-/// ### 사용 예시:
-/// ```swift
-/// let reachabilityUtility = ReachabilityUtility()
-///
-/// reachabilityUtility.networkStatusPublisher
-///     .sink { isConnected, connectionType in
-///         if isConnected {
-///             switch connectionType {
-///             case .wifi:
-///                 print("Connected via Wi-Fi")
-///             case .cellular:
-///                 print("Connected via Cellular")
-///             case .ethernet:
-///                 print("Connected via Ethernet")
-///             case .none:
-///                 print("No network connection")
-///             }
-///         } else {
-///             print("No network connection")
-///         }
-///     }
-///     .store(in: &cancellables)
-///
-/// reachabilityUtility.startMonitoring()
-/// ```
-///
-/// - Note: 모니터링을 시작하려면 `startMonitoring()`을 호출해야 합니다.
-
 import Foundation
 import SystemConfiguration
 import Combine
 
-
+/// A utility class to monitor the network connectivity status using the SCNetworkReachability API.
+/// This class provides real-time network status updates (Wi-Fi, cellular, or no connection) using the `Combine` framework.
+/// It can be used to check if the device is connected to a network and to determine the type of network connection.
+/// The class supports both starting and stopping network monitoring and sends status updates through a `Publisher`.
+///
+/// # Features:
+/// - Monitor network status (Wi-Fi, cellular, or no connection)
+/// - Real-time network status updates via `Combine` Publisher
+/// - Start and stop monitoring at any time
+/// - Determine network connection type
+///
+/// # Example Usage:
+///
+/// ```swift
+/// let reachabilityUtility = ReachabilityUtility()
+///
+/// // Start monitoring network status
+/// reachabilityUtility.startMonitoring()
+///
+/// // Subscribe to network status updates
+/// reachabilityUtility.networkStatusPublisher
+///     .sink { isConnected, connectionType in
+///         print("Network connected: \(isConnected)")
+///         print("Connection type: \(connectionType)")
+///     }
+///     .store(in: &cancellables)
+///
+/// // Stop monitoring network status when no longer needed
+/// reachabilityUtility.stopMonitoring()
+/// ```
+///
+/// This example demonstrates how to start monitoring the network status and handle updates using `ReachabilityUtility`.
+/// The network connection status and type are printed whenever there is a change in connectivity.
 public class ReachabilityUtility {
     
     private var reachability: SCNetworkReachability?
     private var reachabilitySubject = PassthroughSubject<(Bool, NetworkConnectionType), Never>()
+    private var previousConnectionStatus: (Bool, NetworkConnectionType)?
     
-    /// 네트워크 상태 변경을 실시간으로 전송하는 Publisher
+    /// Publisher that emits real-time network status updates.
     public var networkStatusPublisher: AnyPublisher<(Bool, NetworkConnectionType), Never> {
         return reachabilitySubject.eraseToAnyPublisher()
     }
     
-    /// Reachability 초기화
+    /// Initializes the Reachability utility with a default hostname (e.g., www.google.com) to check network connectivity.
+    /// - Parameter hostname: The hostname used to check network status. Default is "www.google.com".
     public init(hostname: String = "www.google.com") {
         reachability = SCNetworkReachabilityCreateWithName(nil, hostname)
+        guard reachability != nil else {
+            print("Failed to create reachability reference.")
+            return
+        }
     }
     
-    /// 네트워크 연결 상태를 확인하는 메서드
+    /// Starts monitoring the network connectivity status and sends updates via the publisher.
     public func startMonitoring() {
         guard let reachability = reachability else { return }
         
@@ -76,16 +80,22 @@ public class ReachabilityUtility {
             reachability.updateReachabilityStatus(flags: flags)
         }
         
-        if SCNetworkReachabilitySetCallback(reachability, callback, &context) {
-            SCNetworkReachabilityScheduleWithRunLoop(
-                reachability,
-                CFRunLoopGetCurrent(),
-                CFRunLoopMode.defaultMode.rawValue
-            )
+        if !SCNetworkReachabilitySetCallback(reachability, callback, &context) {
+            print("Failed to set reachability callback.")
+            return
+        }
+        
+        if !SCNetworkReachabilityScheduleWithRunLoop(
+            reachability,
+            CFRunLoopGetCurrent(),
+            CFRunLoopMode.defaultMode.rawValue
+        ) {
+            print("Failed to schedule reachability with run loop.")
+            return
         }
     }
     
-    /// 네트워크 모니터링 중지
+    /// Stops monitoring the network connectivity status.
     public func stopMonitoring() {
         guard let reachability = reachability else { return }
         SCNetworkReachabilityUnscheduleFromRunLoop(reachability, CFRunLoopGetCurrent(), CFRunLoopMode.defaultMode.rawValue)
@@ -94,14 +104,24 @@ public class ReachabilityUtility {
 
 extension ReachabilityUtility {
     
-    /// 네트워크 상태 업데이트
+    /// Updates the network connectivity status and sends it through the publisher.
+    /// - Parameter flags: The reachability flags that indicate the current network status.
     private func updateReachabilityStatus(flags: SCNetworkReachabilityFlags) {
         let isConnected = flags.contains(.reachable) && !flags.contains(.connectionRequired)
         let connectionType = getConnectionType(flags: flags)
-        reachabilitySubject.send((isConnected, connectionType))
+        
+        // Prevent sending the same status multiple times
+        if previousConnectionStatus?.0 != isConnected || previousConnectionStatus?.1 != connectionType {
+            previousConnectionStatus = (isConnected, connectionType)
+            DispatchQueue.main.async {
+                self.reachabilitySubject.send((isConnected, connectionType))
+            }
+        }
     }
     
-    /// 네트워크 연결 타입 확인 (Wi-Fi, 셀룰러, 이더넷, 없음)
+    /// Determines the network connection type (Wi-Fi, cellular, or none) based on the reachability flags.
+    /// - Parameter flags: The reachability flags that indicate the current network connection type.
+    /// - Returns: The type of network connection: `.wifi`, `.cellular`, or `.none`.
     private func getConnectionType(flags: SCNetworkReachabilityFlags) -> NetworkConnectionType {
         if flags.contains(.isWWAN) {
             return .cellular

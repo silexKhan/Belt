@@ -16,7 +16,12 @@ public enum HTTPMethod: String {
     case delete = "DELETE"
     case patch = "PATCH"
     
-    /// 메서드에 따라 URLRequest를 구성하는 함수 (헤더 필드 추가 가능)
+    /// Configures a `URLRequest` based on the HTTP method, query or body parameters, and optional headers.
+    /// - Parameters:
+    ///   - url: The URL to which the request will be made.
+    ///   - parameters: The query parameters for GET requests or body data for POST/PUT/DELETE requests (optional).
+    ///   - headers: Custom headers to include in the request (optional).
+    /// - Returns: A configured `URLRequest` object ready to be used for network calls.
     func configureRequest(url: URL, parameters: [String: Any]?, headers: [String: String]?) -> URLRequest {
         var request = URLRequest(url: url)
         request.httpMethod = self.rawValue
@@ -35,7 +40,11 @@ public enum HTTPMethod: String {
         return request
     }
     
-    /// GET 메서드를 위한 쿼리 파라미터를 URL에 추가하는 함수
+    /// Builds a URL with encoded query parameters for a GET request.
+    /// - Parameters:
+    ///   - url: The base URL for the request.
+    ///   - parameters: A dictionary containing query parameters to be encoded and added to the URL (optional).
+    /// - Returns: A URL with the encoded query parameters.
     private func buildURLWithQueryParams(url: URL, parameters: [String: Any]?) -> URL {
         guard let params = parameters else { return url }
         var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false)
@@ -44,7 +53,10 @@ public enum HTTPMethod: String {
         return urlComponents?.url ?? url
     }
     
-    /// POST, PUT, DELETE 등의 메서드를 위한 바디 파라미터를 JSON으로 인코딩하는 함수
+    /// Encodes the parameters into a JSON body for POST, PUT, DELETE, and PATCH requests.
+    /// - Parameter parameters: A dictionary containing the parameters to be encoded.
+    /// - Returns: A `Data` object containing the JSON-encoded body, or `nil` if no parameters were provided.
+    /// - Throws: An error if the encoding fails.
     private func encodeParameters(_ parameters: [String: Any]?) -> Data? {
         guard let params = parameters else { return nil }
         return try? JSONSerialization.data(withJSONObject: params, options: [])

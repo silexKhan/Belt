@@ -6,27 +6,87 @@
 //
 
 import Foundation
-import UserNotifications
 import Combine
+import UserNotifications
 
-/**
- NotificationUtility 클래스는 iOS에서 로컬 및 푸시 알림을 관리하는 유틸리티 클래스입니다.
- 이 클래스는 사용자에게 알림 권한을 요청하고, 로컬 알림을 생성 및 삭제하는 기능을 제공합니다.
- 
- 주요 기능:
- - **알림 권한 요청**: 앱이 사용자에게 알림을 보낼 수 있도록 권한을 요청합니다.
- - **로컬 알림 생성**: 사용자에게 지정된 시간에 알림을 전송합니다.
- - **알림 삭제**: 특정 알림을 삭제하거나, 예정된 모든 알림을 제거합니다.
- - **알림 설정 확인**: 사용자가 알림을 허용했는지 여부를 확인할 수 있습니다.
- 
- 이 클래스는 알림 관련 기능을 간편하게 관리할 수 있도록 설계되었습니다.
- */
+/// A utility class for managing push and local notifications in iOS.
+/// This class handles requesting notification permissions, scheduling local notifications, and removing notifications.
+/// It leverages the `Combine` framework for reactive and asynchronous handling of notification requests and settings.
+///
+/// The class allows for scheduling local notifications, removing pending or delivered notifications, and checking the current notification settings.
+/// It also ensures proper error handling and prevents duplicate permission requests.
+///
+/// # Features:
+/// - Request notification permissions
+/// - Schedule local notifications
+/// - Remove pending or delivered notifications
+/// - Fetch the current notification settings
+///
+/// # Example Usage:
+///
+/// ```swift
+/// let notificationUtility = NotificationUtility()
+///
+/// // Request notification permission
+/// notificationUtility.requestNotificationPermission()
+///     .sink { granted in
+///         if granted {
+///             print("Notification permission granted.")
+///         } else {
+///             print("Notification permission denied.")
+///         }
+///     }
+///     .store(in: &cancellables)
+///
+/// // Schedule a local notification
+/// notificationUtility.scheduleLocalNotification(
+///     title: "Reminder",
+///     body: "Don't forget your meeting!",
+///     timeInterval: 60,
+///     identifier: "meeting_reminder"
+/// )
+/// .sink(receiveCompletion: { completion in
+///     switch completion {
+///     case .finished:
+///         print("Notification scheduled successfully.")
+///     case .failure(let error):
+///         print("Error scheduling notification: \(error.localizedDescription)")
+///     }
+/// }, receiveValue: { success in
+///     print("Notification scheduling result: \(success)")
+/// })
+/// .store(in: &cancellables)
+///
+/// // Remove a specific pending notification
+/// notificationUtility.removePendingNotification(identifier: "meeting_reminder")
+///
+/// // Remove all pending notifications
+/// notificationUtility.removeAllPendingNotifications()
+///
+/// // Fetch current notification settings
+/// notificationUtility.getNotificationSettings()
+///     .sink { settings in
+///         print("Current notification settings: \(settings)")
+///     }
+///     .store(in: &cancellables)
+/// ```
+///
+/// This example demonstrates how to request notification permissions, schedule a local notification,
+/// remove pending notifications, and fetch the current notification settings using `NotificationUtility`.
+/// The class provides asynchronous handling and ensures proper error management.
 public class NotificationUtility {
     
-    /// 푸시 알림 권한을 요청하는 메서드
-    /// - Returns: 권한이 허용되었는지 여부를 비동기적으로 반환하는 `Future`
+    private var isRequestingPermission = false  // Prevents duplicate permission requests
+    
+    /// Requests notification permission from the user.
+    /// - Returns: A `Future` that returns `true` if the permission is granted, or `false` otherwise.
     public func requestNotificationPermission() -> Future<Bool, Never> {
         return Future { promise in
+            if self.isRequestingPermission {
+                promise(.success(false))  // Prevents duplicate permission requests
+                return
+            }
+            
             UNUserNotificationCenter.current().getNotificationSettings { settings in
                 switch settings.authorizationStatus {
                 case .authorized, .provisional:
@@ -34,7 +94,9 @@ public class NotificationUtility {
                 case .denied:
                     promise(.success(false))
                 case .notDetermined:
+                    self.isRequestingPermission = true
                     UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+                        self.isRequestingPermission = false
                         promise(.success(granted))
                     }
                 @unknown default:
@@ -44,52 +106,62 @@ public class NotificationUtility {
         }
     }
     
-    /// 로컬 알림을 생성하는 메서드
+    /// Schedules a local notification.
     /// - Parameters:
-    ///   - title: 알림의 제목
-    ///   - body: 알림의 본문
-    ///   - timeInterval: 알림이 발송될 시간 간격 (초 단위)
-    ///   - identifier: 알림을 구분하는 고유 식별자
-    public func scheduleLocalNotification(title: String, body: String, timeInterval: TimeInterval, identifier: String) {
-        let content = UNMutableNotificationContent()
-        content.title = title
-        content.body = body
-        content.sound = .default
-        
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: timeInterval, repeats: false)
-        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
-        
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                print("로컬 알림 추가 중 오류 발생: \(error.localizedDescription)")
+    ///   - title: The title of the notification.
+    ///   - body: The body text of the notification.
+    ///   - timeInterval: The time interval after which the notification will be triggered (in seconds).
+    ///   - identifier: A unique identifier for the notification.
+    /// - Returns: A `Future` that returns `true` if the notification was scheduled successfully, or an error if it failed.
+    public func scheduleLocalNotification(
+        title: String,
+        body: String,
+        timeInterval: TimeInterval,
+        identifier: String
+    ) -> Future<Bool, Error> {
+        return Future { promise in
+            let content = UNMutableNotificationContent()
+            content.title = title
+            content.body = body
+            content.sound = .default
+            
+            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: timeInterval, repeats: false)
+            let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+            
+            UNUserNotificationCenter.current().add(request) { error in
+                if let error = error {
+                    promise(.failure(error))
+                } else {
+                    promise(.success(true))
+                }
             }
         }
     }
     
-    /// 지정된 알림을 삭제하는 메서드
-    /// - Parameter identifier: 삭제할 알림의 식별자
+    /// Removes a pending notification by its identifier.
+    /// - Parameter identifier: The identifier of the notification to remove.
     public func removePendingNotification(identifier: String) {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier])
     }
     
-    /// 모든 예정된 알림을 삭제하는 메서드
+    /// Removes all pending notifications.
     public func removeAllPendingNotifications() {
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
     }
     
-    /// 전달된 알림을 삭제하는 메서드
-    /// - Parameter identifier: 전달된 알림의 식별자
+    /// Removes a delivered notification by its identifier.
+    /// - Parameter identifier: The identifier of the delivered notification to remove.
     public func removeDeliveredNotification(identifier: String) {
         UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [identifier])
     }
     
-    /// 모든 전달된 알림을 삭제하는 메서드
+    /// Removes all delivered notifications.
     public func removeAllDeliveredNotifications() {
         UNUserNotificationCenter.current().removeAllDeliveredNotifications()
     }
     
-    /// 현재 알림 설정을 가져오는 메서드
-    /// - Returns: 알림 권한 상태를 반환하는 `Future`
+    /// Fetches the current notification settings.
+    /// - Returns: A `Future` that returns the current `UNNotificationSettings` object.
     public func getNotificationSettings() -> Future<UNNotificationSettings, Never> {
         return Future { promise in
             UNUserNotificationCenter.current().getNotificationSettings { settings in

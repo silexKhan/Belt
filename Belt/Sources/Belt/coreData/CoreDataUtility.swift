@@ -5,84 +5,77 @@
 //  Created by ahn kyu suk on 9/5/24.
 //
 
-/**
- CoreDataUtility 클래스는 iOS에서 Core Data와 관련된 작업을 간편하게 처리하기 위한 유틸리티 클래스입니다.
- 데이터를 저장, 읽기, 삭제와 같은 기본적인 CRUD 작업을 지원하며, Combine을 통해 비동기적으로 처리할 수 있습니다.
- 또한, 배치 업데이트, 배열 데이터 저장, 페이징 처리 등의 고급 기능도 제공합니다.
-
- ## 주요 기능:
- - **데이터 생성, 저장, 읽기, 삭제**: Core Data에서의 기본 CRUD 작업을 제공합니다.
- - **배열 데이터 처리**: JSON 인코딩을 통해 배열 데이터를 저장하고 불러옵니다.
- - **배치 업데이트**: 대량의 데이터를 일괄 업데이트합니다.
- - **페이징 처리**: 데이터를 페이징하여 불러올 수 있습니다.
- - **백그라운드 작업 처리**: Core Data의 비동기 백그라운드 작업을 지원합니다.
-
- ## 사용 예시:
- ```swift
- let coreDataUtility = CoreDataUtility(modelName: "MyModel")
-
- // 새로운 엔티티 생성
- let newEntity = coreDataUtility.createEntity(MyEntity.self)
-
- // 데이터 저장
- coreDataUtility.saveContext()
-     .sink(receiveCompletion: { completion in
-         if case .failure(let error) = completion {
-             print("Error saving context: \(error)")
-         }
-     }, receiveValue: { success in
-         print("Context saved successfully: \(success)")
-     })
-
- // 데이터 불러오기
- let fetchRequest: NSFetchRequest<MyEntity> = MyEntity.fetchRequest()
- coreDataUtility.fetchEntities(with: fetchRequest)
-     .sink(receiveCompletion: { completion in
-         if case .failure(let error) = completion {
-             print("Error fetching data: \(error)")
-         }
-     }, receiveValue: { entities in
-         print("Fetched entities: \(entities)")
-     })
- 
- // 배열 데이터 저장
- let myArray = ["Item1", "Item2", "Item3"]
- coreDataUtility.saveArray(myArray, forKey: "myArrayKey")
-     .sink(receiveCompletion: { completion in
-         if case .failure(let error) = completion {
-             print("Error saving array: \(error)")
-         }
-     }, receiveValue: { success in
-         print("Array saved successfully: \(success)")
-     })
- 
- // 배열 데이터 불러오기
- coreDataUtility.fetchArray([String].self, forKey: "myArrayKey", from: newEntity)
-     .sink(receiveCompletion: { completion in
-         if case .failure(let error) = completion {
-             print("Error fetching array: \(error)")
-         }
-     }, receiveValue: { array in
-         print("Fetched array: \(array)")
-     })
- ```
- 
- 이 클래스는 Core Data와 관련된 작업을 간단하게 처리할 수 있도록 설계되었습니다. 
- Combine을 통해 비동기적인 데이터를 쉽게 다룰 수 있으며, 다양한 기능을 통해 대량 데이터 처리와 페이징 등을 지원합니다.
- */
-
 import Foundation
 import CoreData
 import Combine
 
-
+/// A utility class to handle common Core Data operations with support for Combine framework for asynchronous tasks.
+/// This class provides functionalities such as creating, fetching, deleting, and saving Core Data entities,
+/// as well as handling batch updates, array storage, pagination, and background task processing.
+///
+/// The class manages the Core Data stack via NSPersistentContainer and utilizes AnyPublisher to return the result of
+/// asynchronous operations, allowing seamless error handling and chaining of tasks.
+/// The class is designed to streamline the Core Data interaction process and encapsulate commonly used patterns.
+///
+/// # Usage Example:
+///
+/// ```swift
+/// let coreDataUtility = CoreDataUtility(modelName: "MyModel")
+///
+/// // Creating an entity
+/// let newEntity = coreDataUtility.createEntity(MyEntity.self)
+/// newEntity.name = "Sample Name"
+///
+/// // Saving the context
+/// coreDataUtility.saveContext()
+///     .sink(receiveCompletion: { completion in
+///         switch completion {
+///         case .finished:
+///             print("Save successful")
+///         case .failure(let error):
+///             print("Save failed: \(error)")
+///         }
+///     }, receiveValue: { success in
+///         if success {
+///             print("Changes were saved.")
+///         } else {
+///             print("No changes to save.")
+///         }
+///     })
+///     .store(in: &cancellables)
+///
+/// // Fetching entities
+/// let fetchRequest: NSFetchRequest<MyEntity> = MyEntity.fetchRequest()
+/// coreDataUtility.fetchEntities(with: fetchRequest)
+///     .sink(receiveCompletion: { completion in
+///         if case .failure(let error) = completion {
+///             print("Fetch failed: \(error)")
+///         }
+///     }, receiveValue: { entities in
+///         print("Fetched \(entities.count) entities.")
+///     })
+///     .store(in: &cancellables)
+///
+/// // Deleting an entity
+/// coreDataUtility.deleteEntity(newEntity)
+///     .sink(receiveCompletion: { completion in
+///         if case .failure(let error) = completion {
+///             print("Delete failed: \(error)")
+///         }
+///     }, receiveValue: { success in
+///         print("Entity deleted: \(success)")
+///     })
+///     .store(in: &cancellables)
+/// ```
 public class CoreDataUtility {
     
     private let persistentContainer: NSPersistentContainer
     private var context: NSManagedObjectContext { persistentContainer.viewContext }
     private var cancellables = Set<AnyCancellable>()
     
-    /// 초기화 메서드 - Persistent Container 설정
+    /// Initializes the CoreDataUtility with the specified model name.
+    /// Sets up the NSPersistentContainer and loads the persistent stores.
+    /// - Parameter modelName: The name of the Core Data model.
     public init(modelName: String) {
         persistentContainer = NSPersistentContainer(name: modelName)
         persistentContainer.loadPersistentStores { storeDescription, error in
@@ -92,8 +85,8 @@ public class CoreDataUtility {
         }
     }
     
-    /// 데이터를 저장하는 메서드
-    /// - Returns: 저장 성공 여부를 비동기적으로 반환하는 `AnyPublisher<Bool, CoreDataError>`
+    /// Saves the current state of the context if there are changes.
+    /// - Returns: An `AnyPublisher<Bool, CoreDataError>` that emits `true` if changes were saved, `false` if no changes were present, or an error in case of failure.
     public func saveContext() -> AnyPublisher<Bool, CoreDataError> {
         return Future { promise in
             if self.context.hasChanges {
@@ -110,16 +103,16 @@ public class CoreDataUtility {
         .eraseToAnyPublisher()
     }
     
-    /// 엔티티를 생성하는 메서드
-    /// - Parameter entity: 생성할 Core Data 엔티티 타입
-    /// - Returns: 지정된 타입의 새 엔티티
+    /// Creates a new entity of the specified Core Data type.
+    /// - Parameter entity: The type of the Core Data entity to create.
+    /// - Returns: A new instance of the specified entity type.
     public func createEntity<T: NSManagedObject>(_ entity: T.Type) -> T {
         return T(context: context)
     }
     
-    /// 데이터를 불러오는 메서드
-    /// - Parameter fetchRequest: 데이터를 불러올 NSFetchRequest 객체
-    /// - Returns: 엔티티 배열을 비동기적으로 반환하는 `AnyPublisher<[T], CoreDataError>`
+    /// Fetches entities from the Core Data store using the provided fetch request.
+    /// - Parameter fetchRequest: An `NSFetchRequest` object to specify the data to be fetched.
+    /// - Returns: An `AnyPublisher<[T], CoreDataError>` that emits an array of entities or an error in case of failure.
     public func fetchEntities<T: NSManagedObject>(with fetchRequest: NSFetchRequest<T>) -> AnyPublisher<[T], CoreDataError> {
         return Future { promise in
             do {
@@ -132,9 +125,9 @@ public class CoreDataUtility {
         .eraseToAnyPublisher()
     }
     
-    /// 엔티티를 삭제하는 메서드
-    /// - Parameter entity: 삭제할 엔티티
-    /// - Returns: 삭제 성공 여부를 비동기적으로 반환하는 `AnyPublisher<Bool, CoreDataError>`
+    /// Deletes the specified entity from the context.
+    /// - Parameter entity: The Core Data entity to be deleted.
+    /// - Returns: An `AnyPublisher<Bool, CoreDataError>` that emits `true` if the entity was successfully deleted, or an error in case of failure.
     public func deleteEntity<T: NSManagedObject>(_ entity: T) -> AnyPublisher<Bool, CoreDataError> {
         return Future { promise in
             self.context.delete(entity)
@@ -151,9 +144,9 @@ public class CoreDataUtility {
         .eraseToAnyPublisher()
     }
     
-    /// 모든 엔티티를 삭제하는 메서드
-    /// - Parameter entity: 삭제할 엔티티 타입
-    /// - Returns: 삭제 성공 여부를 비동기적으로 반환하는 `AnyPublisher<Bool, CoreDataError>`
+    /// Deletes all entities of the specified type from the Core Data store.
+    /// - Parameter entity: The type of Core Data entity to delete.
+    /// - Returns: An `AnyPublisher<Bool, CoreDataError>` that emits `true` if all entities were successfully deleted, or an error in case of failure.
     public func deleteAllEntities<T: NSManagedObject>(_ entity: T.Type) -> AnyPublisher<Bool, CoreDataError> {
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: entity))
         let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
@@ -169,11 +162,12 @@ public class CoreDataUtility {
         .eraseToAnyPublisher()
     }
     
-    /// 배열 데이터를 CoreData에 저장하는 유틸리티 메서드
-    /// - Parameter array: 저장할 배열 데이터
-    /// - Parameter key: 배열 데이터를 저장할 엔티티의 속성 키
-    /// - Parameter entityType: 데이터를 저장할 엔티티 타입
-    /// - Returns: 저장 성공 여부를 비동기적으로 반환하는 `AnyPublisher<Bool, CoreDataError>`
+    /// Saves an array of encodable data into the specified entity's attribute.
+    /// - Parameters:
+    ///   - array: The array of encodable data to save.
+    ///   - key: The key for the entity's attribute where the data will be stored.
+    ///   - entityType: The Core Data entity type to store the data in.
+    /// - Returns: An `AnyPublisher<Bool, CoreDataError>` that emits `true` if the array was successfully saved, or an error in case of failure.
     public func saveArray<T: Encodable>(_ array: [T], forKey key: String, entityType: NSManagedObject.Type) -> AnyPublisher<Bool, CoreDataError> {
         return Future { promise in
             do {
@@ -189,11 +183,12 @@ public class CoreDataUtility {
         .eraseToAnyPublisher()
     }
 
-    /// 배열 데이터를 CoreData에서 불러오는 유틸리티 메서드
-    /// - Parameter type: 불러올 배열 데이터의 타입
-    /// - Parameter key: 배열 데이터를 저장한 엔티티의 속성 키
-    /// - Parameter entity: 데이터를 불러올 엔티티
-    /// - Returns: 배열 데이터를 비동기적으로 반환하는 `AnyPublisher<[T], CoreDataError>`
+    /// Fetches and decodes an array of data from a Core Data entity attribute.
+    /// - Parameters:
+    ///   - type: The type of data to decode from the stored data.
+    ///   - key: The key for the entity's attribute where the data is stored.
+    ///   - entity: The Core Data entity that holds the data.
+    /// - Returns: An `AnyPublisher<[T], CoreDataError>` that emits the decoded array or an error in case of failure.
     public func fetchArray<T: Decodable>(_ type: T.Type, forKey key: String, from entity: NSManagedObject) -> AnyPublisher<[T], CoreDataError> {
         return Future { promise in
             guard let data = entity.value(forKey: key) as? Data else {
@@ -211,10 +206,11 @@ public class CoreDataUtility {
         .eraseToAnyPublisher()
     }
     
-    /// 배치 업데이트를 수행하는 메서드
-    /// - Parameter entity: 업데이트할 엔티티 타입
-    /// - Parameter propertiesToUpdate: 업데이트할 속성 목록
-    /// - Returns: 업데이트 성공 여부를 비동기적으로 반환하는 `AnyPublisher<Bool, CoreDataError>`
+    /// Performs a batch update on the specified Core Data entity type.
+    /// - Parameters:
+    ///   - entity: The type of Core Data entity to update.
+    ///   - propertiesToUpdate: A dictionary of properties and their new values.
+    /// - Returns: An `AnyPublisher<Bool, CoreDataError>` that emits `true` if the update was successful, or an error in case of failure.
     public func batchUpdateEntity<T: NSManagedObject>(_ entity: T.Type, propertiesToUpdate: [String: Any]) -> AnyPublisher<Bool, CoreDataError> {
         return Future { promise in
             let entityName = String(describing: entity)  // 엔티티 이름 가져오기
@@ -235,11 +231,12 @@ public class CoreDataUtility {
         .eraseToAnyPublisher()
     }
     
-    /// 페이징을 위한 데이터 불러오기 메서드
-    /// - Parameter fetchRequest: 데이터를 불러올 NSFetchRequest 객체
-    /// - Parameter limit: 불러올 데이터 개수
-    /// - Parameter offset: 데이터 시작점
-    /// - Returns: 엔티티 배열을 비동기적으로 반환하는 `AnyPublisher<[T], CoreDataError>`
+    /// Fetches a paginated list of entities from the Core Data store.
+    /// - Parameters:
+    ///   - fetchRequest: An `NSFetchRequest` object to specify the data to be fetched.
+    ///   - limit: The number of entities to fetch.
+    ///   - offset: The starting point of the data fetch.
+    /// - Returns: An `AnyPublisher<[T], CoreDataError>` that emits an array of entities or an error in case of failure.
     public func fetchEntitiesWithPagination<T: NSManagedObject>(with fetchRequest: NSFetchRequest<T>, limit: Int, offset: Int) -> AnyPublisher<[T], CoreDataError> {
         return Future { promise in
             fetchRequest.fetchLimit = limit
@@ -255,8 +252,8 @@ public class CoreDataUtility {
         .eraseToAnyPublisher()
     }
     
-    /// 백그라운드에서 데이터를 처리하는 메서드
-    /// - Parameter block: 백그라운드에서 수행할 작업을 담은 클로저
+    /// Executes a block of code on a background context.
+    /// - Parameter block: A closure that contains the code to be executed on the background context.
     public func performBackgroundTask(_ block: @escaping (NSManagedObjectContext) -> Void) {
         persistentContainer.performBackgroundTask { backgroundContext in
             block(backgroundContext)

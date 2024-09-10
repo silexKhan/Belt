@@ -8,16 +8,64 @@
 import Foundation
 import Combine
 
-/// 네트워크 요청을 처리하는 유틸리티 클래스
+/// A utility class for handling HTTP network requests using `Combine` framework.
+/// This class supports various HTTP methods (GET, POST, PUT, DELETE, PATCH) and allows sending both query parameters
+/// for GET requests and body parameters for POST/PUT/DELETE requests. It also supports adding custom headers to requests.
+/// The result of each request is returned as an `AnyPublisher`, which can be subscribed to for reactive handling of network responses.
+///
+/// The class automatically handles common issues such as URL encoding, JSON encoding for body data, and error handling based on HTTP status codes.
+///
+/// # Features:
+/// - Support for GET, POST, PUT, DELETE, PATCH HTTP methods
+/// - Support for sending query parameters or body data (JSON format)
+/// - Custom request headers
+/// - Reactive error handling using `Combine`
+///
+/// # Example Usage:
+///
+/// ```swift
+/// let networkUtility = NetworkUtility()
+/// let url = URL(string: "https://api.example.com/resource")!
+///
+/// // GET request with query parameters
+/// networkUtility.request(url: url, method: .get, parameters: ["query": "example"])
+///     .sink(receiveCompletion: { completion in
+///         switch completion {
+///         case .finished:
+///             print("Request finished successfully.")
+///         case .failure(let error):
+///             print("Error occurred: \(error)")
+///         }
+///     }, receiveValue: { data in
+///         print("Received data: \(data)")
+///     })
+///     .store(in: &cancellables)
+///
+/// // POST request with body parameters
+/// networkUtility.request(url: url, method: .post, parameters: ["key": "value"])
+///     .sink(receiveCompletion: { completion in
+///         switch completion {
+///         case .finished:
+///             print("POST request finished successfully.")
+///         case .failure(let error):
+///             print("Error occurred: \(error)")
+///         }
+///     }, receiveValue: { data in
+///         print("Received data: \(data)")
+///     })
+///     .store(in: &cancellables)
+/// ```
+///
+/// This example demonstrates how to use `NetworkUtility` to make GET and POST requests, handle responses, and manage errors using `Combine`.
 public class NetworkUtility {
     
-    /// 네트워크 요청 처리 (GET, POST, PUT, DELETE, PATCH 지원)
+    /// Performs an HTTP request with the given method, parameters, and headers.
     /// - Parameters:
-    ///   - url: 요청할 URL
-    ///   - method: HTTP 메서드 (GET, POST, PUT, DELETE, PATCH)
-    ///   - parameters: GET 쿼리 파라미터 또는 POST/PUT/DELETE 바디 데이터
-    ///   - headers: 추가 요청 헤더 필드
-    /// - Returns: 네트워크 요청 결과를 반환하는 `AnyPublisher`
+    ///   - url: The URL for the network request.
+    ///   - method: The HTTP method to use (GET, POST, PUT, DELETE, PATCH).
+    ///   - parameters: Query parameters for GET requests or body data for other methods (optional).
+    ///   - requestHeaderFields: Custom headers for the request (optional).
+    /// - Returns: An `AnyPublisher` that publishes the result of the request as `Data` or an error.
     public func request(
         url: URL,
         method: HTTPMethod,
@@ -35,7 +83,9 @@ public class NetworkUtility {
 
 extension AnyPublisher where Output == Data, Failure == URLError {
     
-    /// 데이터를 String으로 변환해 출력하는 디버깅 함수
+    /// A debugging function to print the response data as a string or JSON object.
+    /// This is helpful for visualizing the response from a network request during development.
+    /// - Returns: An `AnyPublisher` that logs the response data and passes it downstream.
     func debug() -> AnyPublisher<Data, URLError> {
         return self.handleEvents(receiveOutput: { data in
             if let responseString = String(data: data, encoding: .utf8) {

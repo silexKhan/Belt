@@ -6,21 +6,72 @@
 //
 
 import Foundation
-import Combine
 import CoreLocation
+import Combine
 
-/**
- LocationUtility 클래스는 iOS에서 위치 관련 작업을 관리하는 유틸리티 클래스입니다.
- 사용자의 위치 정보를 받아오고, 실시간 위치 추적을 할 수 있으며, 권한 요청도 관리합니다.
- 
- 주요 기능:
- - **위치 권한 요청**: 앱이 위치 정보를 사용할 수 있도록 권한을 요청합니다.
- - **실시간 위치 추적**: 사용자의 실시간 위치를 추적하여 업데이트합니다.
- - **위치 업데이트 조건 설정**: 위치 업데이트의 최소 거리, 정확도 등을 설정할 수 있습니다.
- - **정확한 위치 정보 필터링**: 설정된 조건에 따라 정확도와 최소 거리 등의 조건을 만족하는 위치 정보만 외부로 전송합니다.
- 
- 이 유틸리티는 GPS 및 위치 기반 기능을 간편하게 구현할 수 있도록 설계되었습니다.
- */
+/// A utility class for managing location updates and requests using `CLLocationManager`.
+/// The class allows requesting one-time location updates as well as continuous tracking of the device's location.
+/// It utilizes the `Combine` framework to handle asynchronous location updates and authorization requests,
+/// providing a reactive way to manage location data in your app.
+///
+/// The `LocationUtility` class supports real-time tracking, location authorization requests,
+/// and configuration updates such as setting accuracy or minimum distance for updates.
+/// Location updates are processed only when they meet certain accuracy and distance conditions,
+/// which can be customized through the `LocationConfig` object.
+///
+/// # Features:
+/// - Request one-time location updates
+/// - Start and stop continuous location tracking
+/// - Request location authorization
+/// - Handle location update errors gracefully
+///
+/// # Usage Example:
+///
+/// ```swift
+/// let locationUtility = LocationUtility()
+///
+/// // Request location authorization
+/// locationUtility.requestLocationAuthorization()
+///     .sink { isAuthorized in
+///         if isAuthorized {
+///             print("Location authorization granted.")
+///         } else {
+///             print("Location authorization not granted.")
+///         }
+///     }
+///     .store(in: &cancellables)
+///
+/// // Get current location
+/// locationUtility.getCurrentLocation()
+///     .sink(receiveCompletion: { completion in
+///         switch completion {
+///         case .finished:
+///             print("Location retrieval finished.")
+///         case .failure(let error):
+///             print("Error retrieving location: \(error)")
+///         }
+///     }, receiveValue: { location in
+///         print("Current location: \(location.coordinate.latitude), \(location.coordinate.longitude)")
+///     })
+///     .store(in: &cancellables)
+///
+/// // Start tracking location
+/// locationUtility.startTrackingLocation()
+///     .sink(receiveCompletion: { completion in
+///         if case .failure(let error) = completion {
+///             print("Error tracking location: \(error)")
+///         }
+///     }, receiveValue: { location in
+///         print("Updated location: \(location.coordinate.latitude), \(location.coordinate.longitude)")
+///     })
+///     .store(in: &cancellables)
+///
+/// // Stop tracking location
+/// locationUtility.stopTrackingLocation()
+/// ```
+///
+/// This example demonstrates how to use `LocationUtility` to request location permissions,
+/// retrieve the current location, and start/stop real-time location tracking.
 public class LocationUtility: NSObject {
     
     private let locationManager: CLLocationManager
@@ -36,22 +87,27 @@ public class LocationUtility: NSObject {
         self.config = config
         super.init()
         self.locationManager.delegate = self
+        self.locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        self.locationManager.distanceFilter = config.minimumDistance
     }
     
-    /// 위치 설정을 업데이트하는 메서드
-    /// - Parameter newConfig: 새로운 위치 설정
+    /// Updates the location configuration with new settings.
+    /// - Parameter newConfig: A `LocationConfig` object that contains new settings for location accuracy, update interval, and minimum distance.
     public func updateConfig(_ newConfig: LocationConfig) {
         self.config = newConfig
+        self.locationManager.distanceFilter = config.minimumDistance
     }
     
-    /// 위치 권한을 요청하는 메서드
+    /// Requests location authorization from the user.
+    /// - Returns: A `Future` that emits `true` if location authorization has already been granted, or `false` if authorization is pending or denied.
     public func requestLocationAuthorization() -> Future<Bool, Never> {
         return Future { promise in
             let status = CLLocationManager.authorizationStatus()
             switch status {
             case .notDetermined:
                 self.locationManager.requestWhenInUseAuthorization()
-                promise(.success(false))
+                self.locationManager.requestAlwaysAuthorization()
+                promise(.success(false)) // 권한 요청 중
             case .authorizedWhenInUse, .authorizedAlways:
                 promise(.success(true))
             default:
@@ -60,28 +116,34 @@ public class LocationUtility: NSObject {
         }
     }
     
-    /// 현재 위치를 요청하는 메서드
-    /// - Returns: 현재 위치를 비동기적으로 반환하는 `AnyPublisher`
+    /// Requests the current location from the device.
+    /// - Returns: An `AnyPublisher` that emits the current location (`CLLocation`) or an error if location retrieval fails.
     public func getCurrentLocation() -> AnyPublisher<CLLocation, Error> {
         locationManager.requestLocation()
         return locationSubject.eraseToAnyPublisher()
     }
     
-    /// 실시간 위치 추적을 시작하는 메서드
+    /// Starts real-time location tracking.
+    /// - Returns: An `AnyPublisher` that emits continuous location updates (`CLLocation`) or an error if tracking fails.
     public func startTrackingLocation() -> AnyPublisher<CLLocation, Error> {
         locationManager.startUpdatingLocation()
         return locationSubject.eraseToAnyPublisher()
     }
     
-    /// 실시간 위치 추적을 중지하는 메서드
+    /// Stops real-time location tracking and ends the location stream.
     public func stopTrackingLocation() {
         locationManager.stopUpdatingLocation()
+        locationSubject.send(completion: .finished) // 위치 추적 중단 시 완료 신호 전달
     }
 }
 
 extension LocationUtility {
     
-    /// 위치를 업데이트해야 하는지 검사하는 함수
+    /// Checks if the location should be updated based on accuracy and timing conditions.
+    /// - Parameters:
+    ///   - newLocation: The new location data to evaluate.
+    ///   - currentTime: The current timestamp to evaluate the update interval.
+    /// - Returns: A `Bool` indicating whether the location should be updated.
     private func shouldUpdateLocation(_ newLocation: CLLocation, currentTime: Date) -> Bool {
         // 위치의 정확도가 설정된 범위 내에 있어야 함
         guard newLocation.horizontalAccuracy >= 0 && newLocation.horizontalAccuracy <= config.horizontalAccuracy else {
@@ -103,7 +165,10 @@ extension LocationUtility {
         return true
     }
 
-    /// 위치를 업데이트하고 상태를 저장하는 함수
+    /// Updates the location data and sends the updated location through the subject.
+    /// - Parameters:
+    ///   - newLocation: The new location data to store.
+    ///   - currentTime: The current timestamp for last update time reference.
     private func updateLocation(_ newLocation: CLLocation, currentTime: Date) {
         lastKnownLocation = newLocation
         locationSubject.send(newLocation)
@@ -113,6 +178,10 @@ extension LocationUtility {
 
 extension LocationUtility: CLLocationManagerDelegate {
     
+    /// Called when `CLLocationManager` provides new location updates.
+    /// - Parameters:
+    ///   - manager: The `CLLocationManager` providing the updates.
+    ///   - locations: An array of `CLLocation` objects representing the updated locations.
     public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         let currentTime = Date()
         guard let newLocation = locations.last else { return }
@@ -123,9 +192,30 @@ extension LocationUtility: CLLocationManagerDelegate {
         }
     }
     
+    /// Called when `CLLocationManager` encounters an error while retrieving locations.
+    /// - Parameters:
+    ///   - manager: The `CLLocationManager` reporting the error.
+    ///   - error: The error that occurred during location retrieval.
     public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         locationSubject.send(completion: .failure(error))
+        stopTrackingLocation()  // 위치 업데이트 실패 시 추적 중지
+    }
+    
+    /// Called when `CLLocationManager` changes the location authorization status.
+    /// - Parameters:
+    ///   - manager: The `CLLocationManager` managing the location services.
+    ///   - status: The updated `CLAuthorizationStatus` for location access.
+    public func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        switch status {
+        case .authorizedWhenInUse, .authorizedAlways:
+            locationSubject.send(completion: .finished)
+        case .denied, .restricted:
+            locationSubject.send(completion: .failure(NSError(domain: "LocationUtility", code: 1, userInfo: [NSLocalizedDescriptionKey: "Location access denied."])))
+        default:
+            break
+        }
     }
 }
+
 
 

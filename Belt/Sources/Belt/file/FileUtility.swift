@@ -8,20 +8,78 @@
 import Foundation
 import Combine
 
-/**
- FileUtility 클래스는 iOS에서 파일 및 디렉토리를 관리하는 기능을 제공하는 유틸리티 클래스입니다.
- 파일 시스템에 접근하여 파일을 읽고, 쓰고, 삭제하는 작업을 간편하게 수행할 수 있습니다.
- 
- 주요 기능:
- - **파일 읽기/쓰기**: 지정된 경로에서 파일을 읽거나 씁니다.
- - **파일 존재 여부 확인**: 파일이 존재하는지 확인합니다.
- - **파일 삭제**: 지정된 파일을 삭제합니다.
- - **파일 크기 확인**: 파일의 크기를 반환합니다.
- - **디렉토리 생성 및 파일 목록 불러오기**: 디렉토리를 생성하고, 그 안에 있는 파일들의 목록을 불러옵니다.
- - **파일 이동 및 복사**: 파일을 다른 경로로 이동하거나 복사합니다.
- 
- 이 클래스는 파일 시스템 작업을 쉽게 관리할 수 있도록 도와줍니다.
- */
+/// A utility class for performing common file operations such as reading, writing, deleting,
+/// moving, and listing files and directories. It provides asynchronous support using the `Combine` framework,
+/// allowing for file management tasks to be performed in a non-blocking way.
+///
+/// The class uses `FileManager` for interacting with the file system and handles various file-related operations
+/// such as checking file existence, retrieving file sizes, and creating directories. It also provides
+/// detailed error handling for each operation.
+///
+/// # Usage Example:
+///
+/// ```swift
+/// let fileUtility = FileUtility()
+///
+/// // Write a file
+/// let content = "Hello, world!"
+/// fileUtility.writeFile(content: content, at: .documentDirectory, path: "example.txt")
+///     .sink(receiveCompletion: { completion in
+///         switch completion {
+///         case .finished:
+///             print("File written successfully.")
+///         case .failure(let error):
+///             print("Failed to write file: \(error)")
+///         }
+///     }, receiveValue: { success in
+///         print("Operation success: \(success)")
+///     })
+///     .store(in: &cancellables)
+///
+/// // Read a file
+/// fileUtility.readFile(at: .documentDirectory, path: "example.txt")
+///     .sink(receiveCompletion: { completion in
+///         switch completion {
+///         case .finished:
+///             print("File read successfully.")
+///         case .failure(let error):
+///             print("Failed to read file: \(error)")
+///         }
+///     }, receiveValue: { content in
+///         if let content = content {
+///             print("File content: \(content)")
+///         }
+///     })
+///     .store(in: &cancellables)
+///
+/// // Check if file exists
+/// fileUtility.fileExists(at: .documentDirectory, path: "example.txt")
+///     .sink(receiveCompletion: { _ in }, receiveValue: { exists in
+///         print("File exists: \(exists)")
+///     })
+///     .store(in: &cancellables)
+///
+/// // Delete a file
+/// fileUtility.deleteFile(at: .documentDirectory, path: "example.txt")
+///     .sink(receiveCompletion: { completion in
+///         switch completion {
+///         case .finished:
+///             print("File deleted successfully.")
+///         case .failure(let error):
+///             print("Failed to delete file: \(error)")
+///         }
+///     }, receiveValue: { success in
+///         print("Operation success: \(success)")
+///     })
+///     .store(in: &cancellables)
+/// ```
+///
+/// The class allows seamless chaining of asynchronous file operations and handles errors that occur during
+/// these operations. It also provides utility methods for file manipulation, making it easier to manage files in
+/// the app’s sandboxed environment.
+import Foundation
+import Combine
+
 public class FileUtility {
     
     private let fileManager: FileManager
@@ -30,43 +88,43 @@ public class FileUtility {
         self.fileManager = fileManager
     }
     
-    /// 지정된 기본 디렉토리의 경로를 가져오는 공통 메서드
+    /// Returns the URL for the given directory and path.
     /// - Parameters:
-    ///   - directory: 기본 디렉토리 (`FileManager.SearchPathDirectory`)
-    ///   - path: 디렉토리 내부의 세부 경로
-    /// - Returns: 디렉토리 경로를 포함한 파일 URL 또는 에러
+    ///   - directory: The base directory (`FileManager.SearchPathDirectory`).
+    ///   - path: The relative path within the directory.
+    /// - Returns: A result containing the file URL or an error.
     private func fileURL(at directory: FileManager.SearchPathDirectory, path: String) -> Result<URL, Error> {
         if let directoryURL = fileManager.urls(for: directory, in: .userDomainMask).first {
             let fileURL = directoryURL.appendingPathComponent(path)
             return .success(fileURL)
         } else {
-            let error = NSError(domain: "FileUtility", code: 1, userInfo: [NSLocalizedDescriptionKey: "디렉토리 경로를 찾을 수 없습니다."])
+            let error = NSError(domain: "FileUtility", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unable to find directory path."])
             return .failure(error)
         }
     }
     
-    /// 파일이 존재하는지 확인하는 메서드
+    /// Checks if the file exists at the given path.
     /// - Parameters:
-    ///   - directory: 파일이 위치한 기본 디렉토리 (`FileManager.SearchPathDirectory`)
-    ///   - path: 디렉토리 내부의 세부 경로
-    /// - Returns: 파일이 존재하면 `true`, 존재하지 않으면 `false`를 반환하는 `Future`
-    public func fileExists(at directory: FileManager.SearchPathDirectory, path: String) -> Future<Bool, Never> {
+    ///   - directory: The base directory (`FileManager.SearchPathDirectory`).
+    ///   - path: The relative path within the directory.
+    /// - Returns: A `Future` that returns `true` if the file exists, or `false` otherwise.
+    public func fileExists(at directory: FileManager.SearchPathDirectory, path: String) -> Future<Bool, Error> {
         return Future { promise in
             switch self.fileURL(at: directory, path: path) {
             case .success(let fileURL):
                 let exists = self.fileManager.fileExists(atPath: fileURL.path)
                 promise(.success(exists))
-            case .failure:
-                promise(.success(false))
+            case .failure(let error):
+                promise(.failure(error))
             }
         }
     }
     
-    /// 파일을 읽어 문자열로 반환하는 메서드
+    /// Reads the contents of the file at the given path as a string.
     /// - Parameters:
-    ///   - directory: 파일이 위치한 기본 디렉토리 (`FileManager.SearchPathDirectory`)
-    ///   - path: 디렉토리 내부의 세부 경로
-    /// - Returns: 파일의 내용을 비동기적으로 반환하는 `Future`
+    ///   - directory: The base directory (`FileManager.SearchPathDirectory`).
+    ///   - path: The relative path within the directory.
+    /// - Returns: A `Future` that returns the file's contents as a string.
     public func readFile(at directory: FileManager.SearchPathDirectory, path: String) -> Future<String?, Error> {
         return Future { promise in
             switch self.fileURL(at: directory, path: path) {
@@ -83,13 +141,12 @@ public class FileUtility {
         }
     }
     
-    
-    /// 파일을 저장하는 메서드
+    /// Writes content to a file at the given path.
     /// - Parameters:
-    ///   - content: 파일에 쓸 내용
-    ///   - directory: 파일을 저장할 기본 디렉토리 (`FileManager.SearchPathDirectory`)
-    ///   - path: 디렉토리 내부의 세부 경로
-    /// - Returns: 성공 여부를 비동기적으로 반환하는 `Future`
+    ///   - content: The content to write to the file.
+    ///   - directory: The base directory (`FileManager.SearchPathDirectory`).
+    ///   - path: The relative path within the directory.
+    /// - Returns: A `Future` that returns `true` if the write operation was successful.
     public func writeFile(content: String, at directory: FileManager.SearchPathDirectory, path: String) -> Future<Bool, Error> {
         return Future { promise in
             switch self.fileURL(at: directory, path: path) {
@@ -106,11 +163,11 @@ public class FileUtility {
         }
     }
     
-    /// 파일을 삭제하는 메서드
+    /// Deletes the file at the given path.
     /// - Parameters:
-    ///   - directory: 파일이 위치한 기본 디렉토리 (`FileManager.SearchPathDirectory`)
-    ///   - path: 디렉토리 내부의 세부 경로
-    /// - Returns: 성공 여부를 비동기적으로 반환하는 `Future`
+    ///   - directory: The base directory (`FileManager.SearchPathDirectory`).
+    ///   - path: The relative path within the directory.
+    /// - Returns: A `Future` that returns `true` if the file was successfully deleted.
     public func deleteFile(at directory: FileManager.SearchPathDirectory, path: String) -> Future<Bool, Error> {
         return Future { promise in
             switch self.fileURL(at: directory, path: path) {
@@ -127,11 +184,11 @@ public class FileUtility {
         }
     }
     
-    /// 주어진 파일의 크기를 가져오는 메서드
+    /// Returns the size of the file at the given path.
     /// - Parameters:
-    ///   - directory: 파일이 위치한 기본 디렉토리 (`FileManager.SearchPathDirectory`)
-    ///   - path: 파일 경로
-    /// - Returns: 파일 크기를 비동기적으로 반환하는 `Future`
+    ///   - directory: The base directory (`FileManager.SearchPathDirectory`).
+    ///   - path: The file path.
+    /// - Returns: A `Future` that returns the size of the file in bytes.
     public func fileSize(at directory: FileManager.SearchPathDirectory, path: String) -> Future<Int64, Error> {
         return Future { promise in
             switch self.fileURL(at: directory, path: path) {
@@ -141,7 +198,7 @@ public class FileUtility {
                     if let fileSize = fileAttributes[.size] as? Int64 {
                         promise(.success(fileSize))
                     } else {
-                        promise(.failure(NSError(domain: "FileUtility", code: 1, userInfo: [NSLocalizedDescriptionKey: "파일 크기를 가져올 수 없습니다."])))
+                        promise(.failure(NSError(domain: "FileUtility", code: 2, userInfo: [NSLocalizedDescriptionKey: "Unable to retrieve file size."])))
                     }
                 } catch {
                     promise(.failure(error))
@@ -152,11 +209,11 @@ public class FileUtility {
         }
     }
     
-    /// 주어진 경로에 디렉토리를 생성하는 메서드
+    /// Creates a directory at the given path.
     /// - Parameters:
-    ///   - directory: 기본 디렉토리 (`FileManager.SearchPathDirectory`)
-    ///   - path: 생성할 디렉토리의 세부 경로
-    /// - Returns: 성공 여부를 비동기적으로 반환하는 `Future`
+    ///   - directory: The base directory (`FileManager.SearchPathDirectory`).
+    ///   - path: The relative path of the directory to create.
+    /// - Returns: A `Future` that returns `true` if the directory was successfully created.
     public func createDirectory(at directory: FileManager.SearchPathDirectory, path: String) -> Future<Bool, Error> {
         return Future { promise in
             switch self.fileURL(at: directory, path: path) {
@@ -173,10 +230,10 @@ public class FileUtility {
         }
     }
     
-    /// 디렉토리에서 파일 목록을 가져오는 메서드
+    /// Lists the files in the specified directory.
     /// - Parameters:
-    ///   - directory: 파일 목록을 가져올 기본 디렉토리 (`FileManager.SearchPathDirectory`)
-    /// - Returns: 파일 URL 배열을 비동기적으로 반환하는 `Future`
+    ///   - directory: The base directory (`FileManager.SearchPathDirectory`).
+    /// - Returns: A `Future` that returns an array of file URLs in the directory.
     public func listFiles(in directory: FileManager.SearchPathDirectory) -> Future<[URL], Error> {
         return Future { promise in
             switch self.fileURL(at: directory, path: "") {
@@ -193,13 +250,13 @@ public class FileUtility {
         }
     }
     
-    /// 파일을 이동하는 메서드
+    /// Moves a file from one path to another.
     /// - Parameters:
-    ///   - fromDirectory: 원본 파일이 위치한 디렉토리 (`FileManager.SearchPathDirectory`)
-    ///   - fromPath: 원본 파일 경로
-    ///   - toDirectory: 이동할 위치의 디렉토리 (`FileManager.SearchPathDirectory`)
-    ///   - toPath: 이동할 파일 경로
-    /// - Returns: 성공 여부를 비동기적으로 반환하는 `Future`
+    ///   - fromDirectory: The directory of the source file.
+    ///   - fromPath: The source file path.
+    ///   - toDirectory: The directory of the destination file.
+    ///   - toPath: The destination file path.
+    /// - Returns: A `Future` that returns `true` if the file was successfully moved.
     public func moveFile(from fromDirectory: FileManager.SearchPathDirectory, fromPath: String, to toDirectory: FileManager.SearchPathDirectory, toPath: String) -> Future<Bool, Error> {
         return Future { promise in
             switch (self.fileURL(at: fromDirectory, path: fromPath), self.fileURL(at: toDirectory, path: toPath)) {
@@ -217,5 +274,4 @@ public class FileUtility {
             }
         }
     }
-    
 }
