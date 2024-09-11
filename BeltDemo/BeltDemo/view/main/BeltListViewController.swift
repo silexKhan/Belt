@@ -29,8 +29,36 @@ class BeltListViewController: UIViewController {
     }
     
     private func configUI() {
+        title = "Belt"
         navigationController?.interactivePopGestureRecognizer?.isEnabled = true
         navigationController?.interactivePopGestureRecognizer?.delegate = self
+        setNavigationEffect()
+    }
+    
+    private func setNavigationEffect() {
+        let appearance = UINavigationBarAppearance()
+
+        // 투명한 배경 및 블러 효과 설정
+        appearance.configureWithTransparentBackground()
+
+        // 블러 효과를 적용
+        let blurEffect = UIBlurEffect(style: .systemMaterial)
+        appearance.backgroundEffect = blurEffect
+
+        // 타이틀 텍스트 색상 (다크 모드 대응)
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.label]
+        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.label]
+
+        // 뒤로가기 버튼 아이콘 및 텍스트 색상 설정
+        navigationController?.navigationBar.tintColor = UIColor.label
+
+        // 네비게이션 바에 appearance 설정 적용
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.compactAppearance = appearance // Compact height에서 적용 (옵션)
+
+        // 네비게이션 바 배경색을 투명하게 설정
+        navigationController?.navigationBar.isTranslucent = true
     }
     
     private func binding() {

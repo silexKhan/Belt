@@ -12,6 +12,7 @@ enum BeltUtility: CaseIterable {
     
     case animation
     case asset
+    case audio
     case bluetooth
     case clipboard
     case coreData
@@ -29,6 +30,7 @@ enum BeltUtility: CaseIterable {
         switch self {
         case .animation:        return "Animation"
         case .asset:            return "Asset"
+        case .audio:            return "Audio"
         case .bluetooth:        return "Bluetooth"
         case .clipboard:        return "Clipboard"
         case .coreData:         return "CoreData"

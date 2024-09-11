@@ -13,6 +13,9 @@ class AssetViewController: UIViewController {
     
     @IBOutlet weak var collectionView: UICollectionView!
     
+    //const
+    private let spacing: CGFloat = 2
+    
     private var viewModel = AssetViewModel()
     
     private var ready = PassthroughSubject<Void, Never>()
@@ -21,8 +24,13 @@ class AssetViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        configUI()
         binding()
         ready.send()
+    }
+    
+    private func configUI() {
+        title = "Asset"
     }
     
     private func binding() {
@@ -78,7 +86,6 @@ extension AssetViewController: UICollectionViewDelegateFlowLayout {
     // 셀 크기 지정 (1:1 비율로, 한 줄에 3개의 셀이 나오도록 설정)
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let numberOfCellsInRow: CGFloat = 3
-        let spacing: CGFloat = 10 // 셀 사이의 간격을 설정
         let totalSpacing = (numberOfCellsInRow - 1) * spacing // 셀 사이의 총 간격
         // collectionView의 전체 폭에서 셀 사이의 간격을 뺀 후 셀의 크기를 계산
         let width = (collectionView.bounds.width - totalSpacing) / numberOfCellsInRow
@@ -88,12 +95,12 @@ extension AssetViewController: UICollectionViewDelegateFlowLayout {
     
     // 셀 사이의 간격 설정 (위아래 간격)
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 10
+        return spacing
     }
     
     // 셀 사이의 간격 설정 (좌우 간격)
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        return 10
+        return spacing
     }
 }
 

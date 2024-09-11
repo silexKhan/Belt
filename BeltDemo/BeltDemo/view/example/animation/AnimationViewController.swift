@@ -42,6 +42,7 @@ class AnimationViewController: UIViewController {
     }
     
     private func configUI() {
+        title = "Animation"
         // Initialize and configure the views
         view1 = createColoredView(color: .red, frame: CGRect(x: 50, y: 100, width: 100, height: 100))
         view2 = createColoredView(color: .blue, frame: CGRect(x: 200, y: 100, width: 100, height: 100))
