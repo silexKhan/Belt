@@ -1,4 +1,4 @@
-# <span style="color:yellow;">B</span><span style="color:darkorange;">e</span><span style="color:skyblue;">l</span><span style="color:white;">t</span> 📦
+<h1><span style="color:yellow;">B</span><span style="color:darkorange;">e</span><span style="color:skyblue;">l</span><span style="color:white;">t</span></h1> 📦
 
 <img src="belt.png" alt="Belt Utility Icon" width="100" height="100">
 
