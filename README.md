@@ -1,4 +1,4 @@
-#Belt 📦
+# Belt 📦
 
 <img src="belt.png" alt="Belt Utility Icon" width="100" height="100">
 
