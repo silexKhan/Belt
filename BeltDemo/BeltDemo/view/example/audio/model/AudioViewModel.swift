@@ -17,11 +17,12 @@ class AudioViewModel {
     }
     
     struct Output {
-        
+        let played: AnyPublisher<Void, Never>
     }
     
     private var audio = AudioUtility()
-    
+    //output
+    private var played = PassthroughSubject<Void, Never>()
     private var cancellables = Set<AnyCancellable>()
     
     func transform(input: Input) -> Output {
@@ -32,6 +33,7 @@ class AudioViewModel {
             .sink(receiveValue: playSystemSoundHandler)
             .store(in: &cancellables)
         return Output(
+            played: played.eraseToAnyPublisher()
         )
     }
 }
@@ -44,5 +46,6 @@ extension AudioViewModel {
     
     private func playSystemSoundHandler() {
         audio.playSystemSound(.newMail)
+        played.send()
     }
 }

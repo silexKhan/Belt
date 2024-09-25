@@ -23,6 +23,13 @@ import Foundation
 /// 5. Push Notifications
 /// - key: `NSUserNotificationUsageDescription`
 /// - description: "User-facing message explaining why the app requires push notifications access."
+/// 6. Bluetooth
+/// - keys:
+///   - `NSBluetoothAlwaysUsageDescription`: "User-facing message explaining why the app requires Bluetooth access in the background."
+///   - `NSBluetoothPeripheralUsageDescription`: "User-facing message explaining why the app requires Bluetooth peripheral access."
+///   - `NSBluetoothAlwaysAndWhenInUseUsageDescription`: "User-facing message explaining why the app requires Bluetooth access both when the app is in use and in the background."
+///   - `NSBluetoothWhileInUseUsageDescription`: "User-facing message explaining why the app requires Bluetooth access while the app is in use."
+///
 /// Enum defining the list of permissions the app may request.
 public enum PermissionType {
     case camera
@@ -31,4 +38,7 @@ public enum PermissionType {
     case locationWhenInUse
     case locationAlways
     case notifications
+    case bluetooth
 }
+
+

@@ -40,6 +40,9 @@ class AudioViewController: UIViewController {
     
     private func binding() {
         let output = viewModel.transform(input: createInput())
+        output.played
+            .sink(receiveValue: playedHandler)
+            .store(in: &cancellables)
     }
     
     private func createInput() -> AudioViewModel.Input {
@@ -54,5 +57,9 @@ extension AudioViewController {
     
     private func systemSoundHandler() {
         playSystemSound.send()
+    }
+    
+    private func playedHandler() {
+        //update ui
     }
 }

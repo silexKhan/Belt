@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>User-facing message explaining why the app requires Bluetooth access in the background.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>앱이 항상 위치를 추적하기 위해 권한이 필요합니다.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

@@ -12,6 +12,9 @@
 		4C4150F02C9121290069C6F8 /* AudioViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C4150EF2C9121290069C6F8 /* AudioViewModel.swift */; };
 		4C4150F32C9132220069C6F8 /* Bluetooth.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4C4150F22C9132220069C6F8 /* Bluetooth.storyboard */; };
 		4C4150F52C9132370069C6F8 /* BluetoothViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C4150F42C9132370069C6F8 /* BluetoothViewController.swift */; };
+		4C4301C52CA3BE8300910D1D /* BluetoothViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C4301C42CA3BE8300910D1D /* BluetoothViewModel.swift */; };
+		4C4301C82CA3EED900910D1D /* BluetoothListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C4301C72CA3EED900910D1D /* BluetoothListCell.swift */; };
+		4C4301CA2CA3F47B00910D1D /* BluetoothListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C4301C92CA3F47B00910D1D /* BluetoothListModel.swift */; };
 		4C485D8D2C881FF800E8BEE2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C485D8C2C881FF800E8BEE2 /* AppDelegate.swift */; };
 		4C485D8F2C881FF800E8BEE2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C485D8E2C881FF800E8BEE2 /* SceneDelegate.swift */; };
 		4C485D942C881FF800E8BEE2 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 4C485D932C881FF800E8BEE2 /* Base */; };
@@ -60,6 +63,9 @@
 		4C4150EF2C9121290069C6F8 /* AudioViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioViewModel.swift; sourceTree = "<group>"; };
 		4C4150F22C9132220069C6F8 /* Bluetooth.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Bluetooth.storyboard; sourceTree = "<group>"; };
 		4C4150F42C9132370069C6F8 /* BluetoothViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothViewController.swift; sourceTree = "<group>"; };
+		4C4301C42CA3BE8300910D1D /* BluetoothViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothViewModel.swift; sourceTree = "<group>"; };
+		4C4301C72CA3EED900910D1D /* BluetoothListCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothListCell.swift; sourceTree = "<group>"; };
+		4C4301C92CA3F47B00910D1D /* BluetoothListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothListModel.swift; sourceTree = "<group>"; };
 		4C485D892C881FF800E8BEE2 /* BeltDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BeltDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C485D8C2C881FF800E8BEE2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		4C485D8E2C881FF800E8BEE2 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -135,10 +141,29 @@
 		4C4150F12C91320D0069C6F8 /* bluetooth */ = {
 			isa = PBXGroup;
 			children = (
+				4C4301C32CA3BE7400910D1D /* model */,
+				4C4301C62CA3EEC500910D1D /* cell */,
 				4C4150F22C9132220069C6F8 /* Bluetooth.storyboard */,
 				4C4150F42C9132370069C6F8 /* BluetoothViewController.swift */,
 			);
 			path = bluetooth;
+			sourceTree = "<group>";
+		};
+		4C4301C32CA3BE7400910D1D /* model */ = {
+			isa = PBXGroup;
+			children = (
+				4C4301C42CA3BE8300910D1D /* BluetoothViewModel.swift */,
+				4C4301C92CA3F47B00910D1D /* BluetoothListModel.swift */,
+			);
+			path = model;
+			sourceTree = "<group>";
+		};
+		4C4301C62CA3EEC500910D1D /* cell */ = {
+			isa = PBXGroup;
+			children = (
+				4C4301C72CA3EED900910D1D /* BluetoothListCell.swift */,
+			);
+			path = cell;
 			sourceTree = "<group>";
 		};
 		4C485D802C881FF800E8BEE2 = {
@@ -448,12 +473,15 @@
 				4CB53E4F2C8FF2A700D70C0B /* BeltListViewModel.swift in Sources */,
 				4CB53E682C90405500D70C0B /* AssetViewCell.swift in Sources */,
 				4C4150F52C9132370069C6F8 /* BluetoothViewController.swift in Sources */,
+				4C4301C82CA3EED900910D1D /* BluetoothListCell.swift in Sources */,
 				4CB53E5A2C9007DE00D70C0B /* AnimationViewController.swift in Sources */,
 				4CB53E5D2C900AC300D70C0B /* Extensions.swift in Sources */,
 				4C4150ED2C9120DC0069C6F8 /* AudioViewController.swift in Sources */,
 				4CB53E522C8FF4E100D70C0B /* BeltUtility.swift in Sources */,
+				4C4301C52CA3BE8300910D1D /* BluetoothViewModel.swift in Sources */,
 				4CB53E652C9032B200D70C0B /* AssetViewModel.swift in Sources */,
 				4C485D8D2C881FF800E8BEE2 /* AppDelegate.swift in Sources */,
+				4C4301CA2CA3F47B00910D1D /* BluetoothListModel.swift in Sources */,
 				4CB53E582C8FFEE800D70C0B /* BeltListCell.swift in Sources */,
 				4CB53E622C9027BE00D70C0B /* AssetViewController.swift in Sources */,
 				4C4150F02C9121290069C6F8 /* AudioViewModel.swift in Sources */,

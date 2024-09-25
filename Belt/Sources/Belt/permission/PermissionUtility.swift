@@ -5,14 +5,27 @@
 //  Created by ahn kyu suk on 9/5/24.
 //
 
+//
+//  PermissionUtility.swift
+//
+//  Created by ahn kyu suk on 9/5/24.
+//
+
+//
+//  PermissionUtility.swift
+//
+//  Created by ahn kyu suk on 9/5/24.
+//
+
 import Foundation
 import Combine
 import AVFoundation
 import Photos
 import CoreLocation
 import UserNotifications
+import CoreBluetooth
 
-/// A utility class for managing permissions for various system features such as camera, photo library, microphone, location, and notifications.
+/// A utility class for managing permissions for various system features such as camera, photo library, microphone, location, notifications, and Bluetooth.
 /// It uses the `Combine` framework to handle asynchronous permission requests and returns the results via `Future`.
 ///
 /// This class handles permission requests for the following:
@@ -21,6 +34,7 @@ import UserNotifications
 /// - Microphone
 /// - Location (When In Use, Always)
 /// - Notifications
+/// - Bluetooth
 ///
 /// # Example Usage:
 ///
@@ -38,34 +52,46 @@ import UserNotifications
 ///     }
 ///     .store(in: &cancellables)
 ///
-/// // Request location permission (Always)
-/// permissionUtility.requestPermission(for: .locationAlways)
+/// // Request Bluetooth permission
+/// permissionUtility.requestPermission(for: .bluetooth)
 ///     .sink { granted in
 ///         if granted {
-///             print("Location (Always) permission granted.")
+///             print("Bluetooth permission granted.")
 ///         } else {
-///             print("Location (Always) permission denied.")
+///             print("Bluetooth permission denied.")
 ///         }
 ///     }
 ///     .store(in: &cancellables)
 /// ```
-///
-/// This example demonstrates how to request various system permissions using `PermissionUtility` and handle the result reactively.
 public class PermissionUtility: NSObject {
     
-    private let locationManager = CLLocationManager()
+    // MARK: - Properties
+    
     private var cancellables = Set<AnyCancellable>()
+    
+    // Location Manager
+    private var locationManager: CLLocationManager?
+    private var locationPermissionCompletion: ((Bool) -> Void)?
+    
+    // Bluetooth Manager
+    private var centralManager: CBCentralManager?
+    private var bluetoothStateSubject: PassthroughSubject<CBManagerState, Never>?
     
     public override init() {
         super.init()
-        locationManager.delegate = self
+        // Managers are initialized when requesting permissions
     }
     
-    /// Requests permission for a specified system feature (e.g., camera, photo library, microphone, location, notifications).
+    /// Requests permission for a specified system feature (e.g., camera, photo library, microphone, location, notifications, bluetooth).
     /// - Parameter permissionType: The type of permission to request, defined in the `PermissionType` enum.
     /// - Returns: A `Future` that emits `true` if the permission is granted, and `false` if not.
     public func requestPermission(for permissionType: PermissionType) -> Future<Bool, Never> {
-        return Future { promise in
+        return Future { [weak self] promise in
+            guard let self = self else {
+                promise(.success(false))
+                return
+            }
+            
             switch permissionType {
             case .camera:
                 self.requestCameraPermission { granted in
@@ -91,15 +117,18 @@ public class PermissionUtility: NSObject {
                 self.requestNotificationPermission { granted in
                     promise(.success(granted))
                 }
+            case .bluetooth:
+                self.requestBluetoothPermission()
+                    .sink(receiveValue: { granted in
+                        promise(.success(granted))
+                    })
+                    .store(in: &self.cancellables)
             }
         }
     }
-}
-
-extension PermissionUtility: CLLocationManagerDelegate {
     
-    /// Requests camera access permission from the user.
-    /// - Parameter completion: A closure that is called with `true` if the permission is granted, or `false` if denied.
+    // MARK: - Private Permission Request Methods
+    
     private func requestCameraPermission(completion: @escaping (Bool) -> Void) {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
@@ -108,14 +137,15 @@ extension PermissionUtility: CLLocationManagerDelegate {
             completion(false)
         case .notDetermined:
             AVCaptureDevice.requestAccess(for: .video) { granted in
-                completion(granted)
+                DispatchQueue.main.async {
+                    completion(granted)
+                }
             }
         @unknown default:
             completion(false)
         }
     }
-    /// Requests access to the photo library from the user.
-    /// - Parameter completion: A closure that is called with `true` if access is granted, or `false` if denied.
+    
     private func requestPhotoLibraryPermission(completion: @escaping (Bool) -> Void) {
         let status = PHPhotoLibrary.authorizationStatus()
         switch status {
@@ -125,14 +155,15 @@ extension PermissionUtility: CLLocationManagerDelegate {
             completion(false)
         case .notDetermined:
             PHPhotoLibrary.requestAuthorization { newStatus in
-                completion(newStatus == .authorized || newStatus == .limited)
+                DispatchQueue.main.async {
+                    completion(newStatus == .authorized || newStatus == .limited)
+                }
             }
         @unknown default:
             completion(false)
         }
     }
-    /// Requests microphone access permission from the user.
-    /// - Parameter completion: A closure that is called with `true` if the permission is granted, or `false` if denied.
+    
     private func requestMicrophonePermission(completion: @escaping (Bool) -> Void) {
         switch AVAudioSession.sharedInstance().recordPermission {
         case .granted:
@@ -141,16 +172,15 @@ extension PermissionUtility: CLLocationManagerDelegate {
             completion(false)
         case .undetermined:
             AVAudioSession.sharedInstance().requestRecordPermission { granted in
-                completion(granted)
+                DispatchQueue.main.async {
+                    completion(granted)
+                }
             }
         @unknown default:
             completion(false)
         }
     }
-    /// Requests location permission (either "when in use" or "always") from the user.
-    /// - Parameters:
-    ///   - always: A boolean indicating whether "always" location access is requested. If `false`, "when in use" access is requested.
-    ///   - completion: A closure that is called with `true` if the permission is granted, or `false` if denied.
+    
     private func requestLocationPermission(always: Bool, completion: @escaping (Bool) -> Void) {
         let status = CLLocationManager.authorizationStatus()
         switch status {
@@ -161,44 +191,112 @@ extension PermissionUtility: CLLocationManagerDelegate {
         case .denied, .restricted:
             completion(false)
         case .notDetermined:
+            // Initialize locationManager
+            self.locationManager = CLLocationManager()
+            self.locationManager?.delegate = self
             if always {
-                locationManager.requestAlwaysAuthorization()
+                self.locationManager?.requestAlwaysAuthorization()
             } else {
-                locationManager.requestWhenInUseAuthorization()
+                self.locationManager?.requestWhenInUseAuthorization()
             }
+            // Store the completion to be called in delegate method
+            self.locationPermissionCompletion = completion
         @unknown default:
             completion(false)
         }
     }
+    
+    private func requestNotificationPermission(completion: @escaping (Bool) -> Void) {
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            switch settings.authorizationStatus {
+            case .authorized:
+                DispatchQueue.main.async {
+                    completion(true)
+                }
+            case .denied:
+                DispatchQueue.main.async {
+                    completion(false)
+                }
+            case .notDetermined:
+                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, _ in
+                    DispatchQueue.main.async {
+                        completion(granted)
+                    }
+                }
+            @unknown default:
+                DispatchQueue.main.async {
+                    completion(false)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Bluetooth Permission Request
+    
+    private func requestBluetoothPermission() -> AnyPublisher<Bool, Never> {
+        // Initialize bluetoothStateSubject and centralManager
+        self.bluetoothStateSubject = PassthroughSubject<CBManagerState, Never>()
+        self.centralManager = CBCentralManager(delegate: self, queue: nil)
+        
+        return bluetoothStateSubject!
+            .receive(on: DispatchQueue.main)
+            .map { state -> Bool in
+                switch state {
+                case .poweredOn:
+                    return true
+                case .unauthorized, .poweredOff, .resetting, .unsupported, .unknown:
+                    return false
+                @unknown default:
+                    return false
+                }
+            }
+            .first()
+            .handleEvents(receiveOutput: { _ in
+                // Clean up
+                self.bluetoothStateSubject = nil
+                self.centralManager = nil
+            })
+            .eraseToAnyPublisher()
+    }
+}
+
+// MARK: - CLLocationManagerDelegate
+
+extension PermissionUtility: CLLocationManagerDelegate {
     
     /// Delegate method that is called when the location authorization status changes.
     /// - Parameters:
     ///   - manager: The `CLLocationManager` instance managing the location services.
     ///   - status: The new authorization status for location access.
     public func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
-        if status == .authorizedAlways || status == .authorizedWhenInUse {
-            // Handle location permission granted
-        } else if status == .denied {
-            // Handle location permission denied
+        guard let completion = locationPermissionCompletion else { return }
+        
+        switch status {
+        case .authorizedAlways:
+            completion(true)
+        case .authorizedWhenInUse:
+            completion(false)
+        case .denied, .restricted:
+            completion(false)
+        case .notDetermined:
+            // Still not determined, do nothing
+            break
+        @unknown default:
+            completion(false)
         }
+        
+        // Clean up
+        locationPermissionCompletion = nil
+        locationManager = nil
     }
+}
+
+// MARK: - CBCentralManagerDelegate
+
+extension PermissionUtility: CBCentralManagerDelegate {
     
-    /// Requests notification permission from the user.
-    /// - Parameter completion: A closure that is called with `true` if the permission is granted, or `false` if denied.
-    private func requestNotificationPermission(completion: @escaping (Bool) -> Void) {
-        UNUserNotificationCenter.current().getNotificationSettings { settings in
-            switch settings.authorizationStatus {
-            case .authorized:
-                completion(true)
-            case .denied:
-                completion(false)
-            case .notDetermined:
-                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, _ in
-                    completion(granted)
-                }
-            @unknown default:
-                completion(false)
-            }
-        }
+    public func centralManagerDidUpdateState(_ central: CBCentralManager) {
+        // Send the updated state to the subject
+        bluetoothStateSubject?.send(central.state)
     }
 }
